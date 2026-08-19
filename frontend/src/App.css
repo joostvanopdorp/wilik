@@ -633,12 +633,6 @@
   text-wrap: pretty;
 }
 
-.claim-manager__suggestion {
-  font-size: 14px;
-  color: var(--text);
-  text-wrap: pretty;
-}
-
 .claim-manager__names {
   padding: 12px 14px;
   border-radius: 8px;
@@ -823,6 +817,7 @@ button:hover {
 }
 
 .gift-form {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -830,6 +825,10 @@ button:hover {
   margin-bottom: 24px;
   border: 1px solid var(--border);
   border-radius: 12px;
+}
+
+.gift-form:has(> .gift-form__badge) {
+  margin-top: 18px;
 }
 
 .gift-form label {
@@ -860,8 +859,49 @@ button:hover {
   border-top: none;
 }
 
+.gift-form h3.gift-form__badge {
+  position: absolute;
+  top: -10px;
+  left: 14px;
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 12px;
+  border-radius: 999px;
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+}
+
+.info-block {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 6px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--accent) 8%, var(--bg) 92%);
+  color: var(--text);
+  font-size: 13px;
+  text-wrap: pretty;
+}
+
+.info-block svg {
+  flex-shrink: 0;
+  width: 15px;
+  height: 15px;
+  margin-top: 4.5px;
+  color: var(--accent);
+}
+
 .gift-form .required {
   color: #dc2626;
+}
+
+.not-recommended {
+  font-style: italic;
+  color: var(--accent-border);
 }
 
 .gift-form__image-preview {
@@ -1161,6 +1201,15 @@ button:hover {
   margin: 0 0 16px;
   font-size: 22px;
   color: var(--text-h);
+}
+
+.page > h3 {
+  margin-top: 40px;
+  margin-bottom: 20px;
+}
+
+.page > h2 + h3 {
+  margin-top: 6px;
 }
 
 .page__hint {

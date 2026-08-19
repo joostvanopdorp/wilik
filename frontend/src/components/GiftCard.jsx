@@ -2,7 +2,17 @@ import { useEffect, useRef, useState } from 'react'
 import StarRating from './StarRating'
 import GiftForm from './GiftForm'
 import ImagePlaceholder from './ImagePlaceholder'
-import { PencilIcon, TrashIcon, ExternalLinkIcon, GripIcon, CheckIcon, UndoIcon, LockIcon, CloseIcon } from './Icons'
+import {
+  PencilIcon,
+  TrashIcon,
+  ExternalLinkIcon,
+  GripIcon,
+  CheckIcon,
+  UndoIcon,
+  LockIcon,
+  CloseIcon,
+  InfoIcon,
+} from './Icons'
 import { formatPrice } from '../formatPrice'
 
 const API_BASE = '/api'
@@ -375,8 +385,9 @@ function GiftCard({
               </p>
             )}
             {!gift.received && onReceivedChange && (
-              <p className="claim-manager__suggestion">
-                If you already received this gift, use the checkmark instead to archive it
+              <p className="info-block">
+                <InfoIcon />
+                If you already got this gift, use the checkmark instead to archive it to your list of received items.
               </p>
             )}
             {deleteClaimants !== null && (

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { PencilIcon, TrashIcon, SpinnerIcon, CheckIcon, CloseIcon } from '../components/Icons'
+import { PencilIcon, TrashIcon, SpinnerIcon, CheckIcon, CloseIcon, InfoIcon } from '../components/Icons'
 import { THEME_PRESETS } from '../themePresets'
 import { CURRENCY_OPTIONS, DECIMAL_SEPARATOR_OPTIONS } from '../formOptions'
 
@@ -290,7 +290,7 @@ function AdminPage({ currentUser, appName, onAppNameChange }) {
       </Link>
       <h2>Admin panel</h2>
 
-      <h3>Users</h3>
+      <h3>User management</h3>
       <div className="card">
         <ul className="user-admin__list">
           {users.map((user) => (
@@ -335,8 +335,8 @@ function AdminPage({ currentUser, appName, onAppNameChange }) {
                           checked={editResetPasswordless}
                           onChange={(event) => setEditResetPasswordless(event.target.checked)}
                         />
-                        Reset password without a setup link, allow first login with just a username (not
-                        recommended)
+                        Reset password without a setup link, allow first login with just a username{' '}
+                        <span className="not-recommended">(not recommended)</span>
                       </label>
                       <div className="gift-form__actions">
                         <button type="button" className="btn-primary" onClick={() => handleResetPassword(user)}>
@@ -521,7 +521,8 @@ function AdminPage({ currentUser, appName, onAppNameChange }) {
                             checked={editLockIconClaimedOnly}
                             onChange={(event) => setEditLockIconClaimedOnly(event.target.checked)}
                           />
-                          Only show the lock icon on already-claimed items (not recommended)
+                          Only show the lock icon on already-claimed items{' '}
+                          <span className="not-recommended">(not recommended)</span>
                         </label>
                       )}
                     </>
@@ -564,7 +565,8 @@ function AdminPage({ currentUser, appName, onAppNameChange }) {
             checked={passwordless}
             onChange={(event) => setPasswordless(event.target.checked)}
           />
-          Allow first login with just a username, no setup link (not recommended)
+          Allow first login with just a username, no setup link{' '}
+          <span className="not-recommended">(not recommended)</span>
         </label>
         {userError && <p className="form-error">{userError}</p>}
         {createSetupLink && (
@@ -661,7 +663,8 @@ function AdminPage({ currentUser, appName, onAppNameChange }) {
             checked={claimDeleteWarningSkipped}
             onChange={(event) => setClaimDeleteWarningSkipped(event.target.checked)}
           />
-          Skip the warning when deleting an already-claimed item (not recommended)
+          Skip the warning when deleting an already-claimed item{' '}
+          <span className="not-recommended">(not recommended)</span>
         </label>
         {claimManagementSiteError && <p className="form-error">{claimManagementSiteError}</p>}
         <div className="gift-form__actions">
@@ -696,8 +699,9 @@ function AdminPage({ currentUser, appName, onAppNameChange }) {
 
       <h3>Default theme</h3>
       <form className="gift-form" onSubmit={handleDefaultColorSchemeSubmit}>
-        <p className="page__hint" style={{ margin: '0 0 4px' }}>
-          Default look for anyone without their own preference set, including wishlist visitors
+        <p className="info-block" style={{ marginTop: 0, marginBottom: 4 }}>
+          <InfoIcon />
+          Default look for anyone without their own preference set, including wishlist visitors.
         </p>
         <select value={defaultColorScheme} onChange={(event) => setDefaultColorScheme(event.target.value)}>
           <option value="dark">Dark</option>

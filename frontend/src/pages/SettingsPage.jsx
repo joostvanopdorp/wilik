@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { THEME_PRESETS } from '../themePresets'
 import { getColorScheme, setColorScheme } from '../colorScheme'
 import { CURRENCY_OPTIONS, DECIMAL_SEPARATOR_OPTIONS } from '../formOptions'
-import { CheckIcon } from '../components/Icons'
+import { CheckIcon, InfoIcon } from '../components/Icons'
 
 const API_BASE = '/api'
 
@@ -81,8 +81,14 @@ function SettingsPage({ currentUser, onUpdate }) {
   const [guestFilterByBrand, setGuestFilterByBrand] = useState(currentUser.guest_filter_by_brand_enabled)
   const [claimManagementEnabled, setClaimManagementEnabled] = useState(currentUser.claim_management_enabled)
   const [lockIconClaimedOnly, setLockIconClaimedOnly] = useState(currentUser.lock_icon_claimed_only)
-  const [wishlistError, setWishlistError] = useState(null)
-  const [wishlistSaved, setWishlistSaved] = useState(false)
+  const [generalError, setGeneralError] = useState(null)
+  const [generalSaved, setGeneralSaved] = useState(false)
+  const [appearanceError, setAppearanceError] = useState(null)
+  const [appearanceSaved, setAppearanceSaved] = useState(false)
+  const [guestSettingsError, setGuestSettingsError] = useState(null)
+  const [guestSettingsSaved, setGuestSettingsSaved] = useState(false)
+  const [claimManagementError, setClaimManagementError] = useState(null)
+  const [claimManagementSaved, setClaimManagementSaved] = useState(false)
 
   function handleUsernameSubmit(event) {
     event.preventDefault()
@@ -131,10 +137,10 @@ function SettingsPage({ currentUser, onUpdate }) {
     })
   }
 
-  function handleWishlistSubmit(event) {
+  function handleGeneralSubmit(event) {
     event.preventDefault()
-    setWishlistError(null)
-    setWishlistSaved(false)
+    setGeneralError(null)
+    setGeneralSaved(false)
     fetch(`${API_BASE}/account`, {
       method: 'PUT',
       credentials: 'include',
@@ -143,24 +149,93 @@ function SettingsPage({ currentUser, onUpdate }) {
         list_name: listName,
         currency,
         decimal_separator: decimalSeparator,
+      }),
+    }).then((response) => {
+      if (!response.ok) {
+        response.json().then((data) => setGeneralError(data.error))
+        return
+      }
+      response.json().then((updatedUser) => {
+        onUpdate(updatedUser)
+        setGeneralSaved(true)
+        setTimeout(() => setGeneralSaved(false), 2000)
+      })
+    })
+  }
+
+  function handleAppearanceSubmit(event) {
+    event.preventDefault()
+    setAppearanceError(null)
+    setAppearanceSaved(false)
+    fetch(`${API_BASE}/account`, {
+      method: 'PUT',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
         theme_color: themeColor,
         show_image_placeholder: showImagePlaceholder,
         show_background_pattern: showBackgroundPattern,
+      }),
+    }).then((response) => {
+      if (!response.ok) {
+        response.json().then((data) => setAppearanceError(data.error))
+        return
+      }
+      response.json().then((updatedUser) => {
+        onUpdate(updatedUser)
+        setAppearanceSaved(true)
+        setTimeout(() => setAppearanceSaved(false), 2000)
+      })
+    })
+  }
+
+  function handleGuestSettingsSubmit(event) {
+    event.preventDefault()
+    setGuestSettingsError(null)
+    setGuestSettingsSaved(false)
+    fetch(`${API_BASE}/account`, {
+      method: 'PUT',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
         guest_sort_by_price_enabled: guestSortByPrice,
         guest_filter_by_label_enabled: guestFilterByLabel,
         guest_filter_by_brand_enabled: guestFilterByBrand,
+      }),
+    }).then((response) => {
+      if (!response.ok) {
+        response.json().then((data) => setGuestSettingsError(data.error))
+        return
+      }
+      response.json().then((updatedUser) => {
+        onUpdate(updatedUser)
+        setGuestSettingsSaved(true)
+        setTimeout(() => setGuestSettingsSaved(false), 2000)
+      })
+    })
+  }
+
+  function handleClaimManagementSubmit(event) {
+    event.preventDefault()
+    setClaimManagementError(null)
+    setClaimManagementSaved(false)
+    fetch(`${API_BASE}/account`, {
+      method: 'PUT',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
         claim_management_enabled: claimManagementEnabled,
         lock_icon_claimed_only: lockIconClaimedOnly,
       }),
     }).then((response) => {
       if (!response.ok) {
-        response.json().then((data) => setWishlistError(data.error))
+        response.json().then((data) => setClaimManagementError(data.error))
         return
       }
       response.json().then((updatedUser) => {
         onUpdate(updatedUser)
-        setWishlistSaved(true)
-        setTimeout(() => setWishlistSaved(false), 2000)
+        setClaimManagementSaved(true)
+        setTimeout(() => setClaimManagementSaved(false), 2000)
       })
     })
   }
@@ -174,8 +249,9 @@ function SettingsPage({ currentUser, onUpdate }) {
 
       <h3>Share your wishlist</h3>
       <div className="card">
-        <p className="page__hint" style={{ margin: '0 0 10px' }}>
-          Anyone with this link can view your list and claim items
+        <p className="info-block" style={{ marginTop: 0, marginBottom: 10 }}>
+          <InfoIcon />
+          Anyone with this link can view your list and claim items.
         </p>
         <div className="inline-field">
           <input className="share-link__input" value={shareUrl} readOnly onFocus={(event) => event.target.select()} />
@@ -195,8 +271,9 @@ function SettingsPage({ currentUser, onUpdate }) {
       </div>
 
       <h3>Wishlist settings</h3>
-      <form className="gift-form" onSubmit={handleWishlistSubmit}>
-        <h3>General</h3>
+
+      <form className="gift-form" onSubmit={handleGeneralSubmit}>
+        <h3 className="gift-form__badge">General</h3>
         <label>
           List name
           <input value={listName} onChange={(event) => setListName(event.target.value)} required />
@@ -223,8 +300,22 @@ function SettingsPage({ currentUser, onUpdate }) {
             </select>
           </label>
         </div>
+        {generalError && <p className="form-error">{generalError}</p>}
+        <div className="gift-form__actions">
+          <button type="submit">Save</button>
+          {generalSaved && (
+            <p className="form-success">
+              <span className="form-success__icon">
+                <CheckIcon />
+              </span>
+              Saved
+            </p>
+          )}
+        </div>
+      </form>
 
-        <h3>Appearance</h3>
+      <form className="gift-form" onSubmit={handleAppearanceSubmit}>
+        <h3 className="gift-form__badge">Appearance</h3>
         <label>
           Theme color
           <span className="theme-swatches">
@@ -257,10 +348,25 @@ function SettingsPage({ currentUser, onUpdate }) {
           />
           Show a subtle background pattern on gift cards
         </label>
+        {appearanceError && <p className="form-error">{appearanceError}</p>}
+        <div className="gift-form__actions">
+          <button type="submit">Save</button>
+          {appearanceSaved && (
+            <p className="form-success">
+              <span className="form-success__icon">
+                <CheckIcon />
+              </span>
+              Saved
+            </p>
+          )}
+        </div>
+      </form>
 
-        <h3>Guest sorting &amp; filtering</h3>
-        <p className="page__hint" style={{ margin: '-4px 0 0' }}>
-          Lets guests browsing your list narrow it down themselves, handy for longer lists
+      <form className="gift-form" onSubmit={handleGuestSettingsSubmit}>
+        <h3 className="gift-form__badge">Guest sorting &amp; filtering</h3>
+        <p className="info-block">
+          <InfoIcon />
+          Lets guests browsing your list narrow it down themselves. This is handy for longer lists.
         </p>
         <label className="user-admin__checkbox">
           <input
@@ -286,39 +392,10 @@ function SettingsPage({ currentUser, onUpdate }) {
           />
           Let guests filter by brand
         </label>
-
-        {claimManagementSiteEnabled && (
-          <>
-            <h3>Claim management</h3>
-            <p className="page__hint" style={{ margin: '-4px 0 0' }}>
-              Caution: claims normally stay hidden and anonymous to preserve the surprise, this lets you deliberately
-              reveal or reset them
-            </p>
-            <label className="user-admin__checkbox">
-              <input
-                type="checkbox"
-                checked={claimManagementEnabled}
-                onChange={(event) => setClaimManagementEnabled(event.target.checked)}
-              />
-              Let me reveal and manage claims on this wishlist
-            </label>
-            {claimManagementEnabled && (
-              <label className="user-admin__checkbox">
-                <input
-                  type="checkbox"
-                  checked={lockIconClaimedOnly}
-                  onChange={(event) => setLockIconClaimedOnly(event.target.checked)}
-                />
-                Only show the lock icon on already-claimed items (not recommended)
-              </label>
-            )}
-          </>
-        )}
-
-        {wishlistError && <p className="form-error">{wishlistError}</p>}
+        {guestSettingsError && <p className="form-error">{guestSettingsError}</p>}
         <div className="gift-form__actions">
           <button type="submit">Save</button>
-          {wishlistSaved && (
+          {guestSettingsSaved && (
             <p className="form-success">
               <span className="form-success__icon">
                 <CheckIcon />
@@ -329,16 +406,60 @@ function SettingsPage({ currentUser, onUpdate }) {
         </div>
       </form>
 
+      {claimManagementSiteEnabled && (
+        <form className="gift-form" onSubmit={handleClaimManagementSubmit}>
+          <h3 className="gift-form__badge">Claim management</h3>
+          <p className="info-block">
+            <InfoIcon />
+            <span>
+              <strong>Caution!</strong> Claims normally stay hidden and anonymous to preserve the surprise. This lets
+              you deliberately reveal or reset them.
+            </span>
+          </p>
+          <label className="user-admin__checkbox">
+            <input
+              type="checkbox"
+              checked={claimManagementEnabled}
+              onChange={(event) => setClaimManagementEnabled(event.target.checked)}
+            />
+            Let me reveal and manage claims on this wishlist
+          </label>
+          {claimManagementEnabled && (
+            <label className="user-admin__checkbox">
+              <input
+                type="checkbox"
+                checked={lockIconClaimedOnly}
+                onChange={(event) => setLockIconClaimedOnly(event.target.checked)}
+              />
+              Only show the lock icon on already-claimed items <span className="not-recommended">(not recommended)</span>
+            </label>
+          )}
+          {claimManagementError && <p className="form-error">{claimManagementError}</p>}
+          <div className="gift-form__actions">
+            <button type="submit">Save</button>
+            {claimManagementSaved && (
+              <p className="form-success">
+                <span className="form-success__icon">
+                  <CheckIcon />
+                </span>
+                Saved
+              </p>
+            )}
+          </div>
+        </form>
+      )}
+
       <h3>Account settings</h3>
 
       <form className="gift-form" onSubmit={handleUsernameSubmit}>
+        <h3 className="gift-form__badge">Change username</h3>
         <label>
           Username
           <input value={username} onChange={(event) => setUsername(event.target.value)} required />
         </label>
         {usernameError && <p className="form-error">{usernameError}</p>}
         <div className="gift-form__actions">
-          <button type="submit">Change username</button>
+          <button type="submit">Save</button>
           {usernameSaved && (
             <p className="form-success">
               <span className="form-success__icon">
@@ -351,6 +472,7 @@ function SettingsPage({ currentUser, onUpdate }) {
       </form>
 
       <form className="gift-form" onSubmit={handlePasswordSubmit}>
+        <h3 className="gift-form__badge">Change password</h3>
         <label>
           New password
           <input
@@ -373,7 +495,7 @@ function SettingsPage({ currentUser, onUpdate }) {
         </label>
         {passwordError && <p className="form-error">{passwordError}</p>}
         <div className="gift-form__actions">
-          <button type="submit">Change password</button>
+          <button type="submit">Save</button>
           {passwordSaved && (
             <p className="form-success">
               <span className="form-success__icon">
@@ -387,8 +509,9 @@ function SettingsPage({ currentUser, onUpdate }) {
 
       <h3>App theme</h3>
       <div className="gift-form">
-        <p className="page__hint" style={{ margin: '0 0 4px' }}>
-          Only changes how the app looks for you (wishlist visitors aren't affected)
+        <p className="info-block" style={{ marginTop: 0, marginBottom: 4 }}>
+          <InfoIcon />
+          Only changes how the app looks for you. Wishlist visitors aren't affected.
         </p>
         <select value={colorScheme} onChange={handleColorSchemeChange} aria-label="App theme">
           <option value="dark">Dark</option>
