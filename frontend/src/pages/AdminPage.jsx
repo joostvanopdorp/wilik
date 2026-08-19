@@ -335,8 +335,10 @@ function AdminPage({ currentUser, appName, onAppNameChange }) {
                           checked={editResetPasswordless}
                           onChange={(event) => setEditResetPasswordless(event.target.checked)}
                         />
-                        Reset password without a setup link, allow first login with just a username{' '}
-                        <span className="not-recommended">(not recommended)</span>
+                        <span>
+                          Reset password without a setup link, allow first login with just a username{' '}
+                          <span className="not-recommended">(not recommended)</span>
+                        </span>
                       </label>
                       <div className="gift-form__actions">
                         <button type="button" className="btn-primary" onClick={() => handleResetPassword(user)}>
@@ -521,8 +523,10 @@ function AdminPage({ currentUser, appName, onAppNameChange }) {
                             checked={editLockIconClaimedOnly}
                             onChange={(event) => setEditLockIconClaimedOnly(event.target.checked)}
                           />
-                          Only show the lock icon on already-claimed items{' '}
-                          <span className="not-recommended">(not recommended)</span>
+                          <span>
+                            Only show the lock icon on already-claimed items{' '}
+                            <span className="not-recommended">(not recommended)</span>
+                          </span>
                         </label>
                       )}
                     </>
@@ -565,8 +569,10 @@ function AdminPage({ currentUser, appName, onAppNameChange }) {
             checked={passwordless}
             onChange={(event) => setPasswordless(event.target.checked)}
           />
-          Allow first login with just a username, no setup link{' '}
-          <span className="not-recommended">(not recommended)</span>
+          <span>
+            Allow first login with just a username, no setup link{' '}
+            <span className="not-recommended">(not recommended)</span>
+          </span>
         </label>
         {userError && <p className="form-error">{userError}</p>}
         {createSetupLink && (
@@ -663,8 +669,10 @@ function AdminPage({ currentUser, appName, onAppNameChange }) {
             checked={claimDeleteWarningSkipped}
             onChange={(event) => setClaimDeleteWarningSkipped(event.target.checked)}
           />
-          Skip the warning when deleting an already-claimed item{' '}
-          <span className="not-recommended">(not recommended)</span>
+          <span>
+            Skip the warning when deleting an already-claimed item{' '}
+            <span className="not-recommended">(not recommended)</span>
+          </span>
         </label>
         {claimManagementSiteError && <p className="form-error">{claimManagementSiteError}</p>}
         <div className="gift-form__actions">

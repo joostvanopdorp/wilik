@@ -438,7 +438,10 @@ function SettingsPage({ currentUser, onUpdate }) {
                 checked={lockIconClaimedOnly}
                 onChange={(event) => setLockIconClaimedOnly(event.target.checked)}
               />
-              Only show the lock icon on already-claimed items <span className="not-recommended">(not recommended)</span>
+              <span>
+                Only show the lock icon on already-claimed items{' '}
+                <span className="not-recommended">(not recommended)</span>
+              </span>
             </label>
           )}
           {claimManagementError && <p className="form-error">{claimManagementError}</p>}
