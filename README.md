@@ -16,7 +16,7 @@ A self-hosted wishlist app, named after the Dutch "wil ik" ("I want that"). Each
 
 - 📝 **Personal wishlists** with price, brand, and notes per item. Paste a product URL and it'll try to auto-fill title, image, and price.
 - 🔗 **Share via a link** that works for anyone who has it (not published or searchable anywhere), or add it to the **browsable directory** so people can find it without one. No login required either way, opt out per user or switch off site-wide.
-- 🤫 **Claiming**: visitors can claim an item so others know it's taken, without revealing it to the list owner. The surprise stays intact. (The only exception: deleting an already-claimed item shows a generic warning first, then reveals who claimed it, so you can give them a heads-up.)
+- 🤫 **Claiming**: visitors can claim an item so others know it's taken, without revealing it to the list owner. The surprise stays intact by default. Wishlist owners can explicitly opt into claim management, where claimant names remain hidden until deliberately revealed and stale claims can be reset.
 - 🛠️ **Admin panel** for managing users and resetting passwords.
 - 🌓 **Light/dark theme**, with dark as the default (as it should be).
 

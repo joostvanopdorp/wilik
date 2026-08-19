@@ -590,6 +590,85 @@
   color: var(--accent);
 }
 
+.claim-manager__backdrop {
+  position: fixed;
+  z-index: 1000;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.65);
+  cursor: default;
+}
+
+.claim-manager {
+  position: relative;
+  box-sizing: border-box;
+  width: min(440px, 100%);
+  padding: 20px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg);
+  box-shadow: var(--shadow);
+  color: var(--text);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.claim-manager h3 {
+  margin: 0 32px 0 0;
+  color: var(--text-h);
+}
+
+.claim-manager__close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+}
+
+.claim-manager__hint {
+  font-size: 14px;
+  color: var(--text);
+  text-wrap: pretty;
+}
+
+.claim-manager__suggestion {
+  font-size: 14px;
+  color: var(--text);
+  text-wrap: pretty;
+}
+
+.claim-manager__names {
+  padding: 12px 14px;
+  border-radius: 8px;
+  background: var(--code-bg);
+}
+
+.claim-manager__names ul {
+  margin: 6px 0 0;
+  padding-left: 20px;
+}
+
+.claim-manager__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.claim-manager__actions .btn-danger {
+  margin-left: auto;
+  border-color: rgba(220, 38, 38, 0.55);
+  color: #ef4444;
+}
+
+.claim-manager__actions .btn-danger:hover {
+  border-color: #ef4444;
+  background: rgba(220, 38, 38, 0.12);
+}
+
 .gift-card__claim-rail {
   position: relative;
   z-index: 1;

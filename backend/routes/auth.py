@@ -67,6 +67,12 @@ def update_account():
     current_user.guest_filter_by_brand_enabled = data.get(
         "guest_filter_by_brand_enabled", current_user.guest_filter_by_brand_enabled
     )
+    current_user.claim_management_enabled = data.get(
+        "claim_management_enabled", current_user.claim_management_enabled
+    )
+    current_user.lock_icon_claimed_only = data.get(
+        "lock_icon_claimed_only", current_user.lock_icon_claimed_only
+    )
     db.session.commit()
     return jsonify(current_user.to_dict())
 

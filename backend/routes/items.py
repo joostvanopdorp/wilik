@@ -2,16 +2,29 @@ from flask import Blueprint, jsonify, request
 from flask_login import current_user, login_required
 
 from helpers import CURRENCY_OPTIONS
-from models import Gift, db
+from models import AppSettings, Gift, db
 
 items_bp = Blueprint("items", __name__, url_prefix="/api")
+
+
+def claim_management_active():
+    # a wishlist's own opt-in only takes effect while the admin also allows the
+    # feature site-wide -- both gates are checked here. Governs the *passive* surface
+    # (claimed_count in the item list, the lock icon, resetting claims) so simply
+    # browsing a wishlist can't reveal which items are claimed without opting in.
+    site_settings = AppSettings.query.get(1)
+    return current_user.claim_management_enabled and site_settings.claim_management_site_enabled
+
+
+def owner_gift_dict(gift):
+    return gift.to_dict(include_claim_status=claim_management_active())
 
 
 @items_bp.route("/items")
 @login_required
 def get_items():
     gifts = Gift.query.filter_by(owner_id=current_user.id).all()
-    return jsonify([gift.to_dict() for gift in gifts])
+    return jsonify([owner_gift_dict(gift) for gift in gifts])
 
 
 @items_bp.route("/items/<int:item_id>/rating", methods=["PATCH"])
@@ -24,7 +37,7 @@ def update_rating(item_id):
     gift.rating = data["rating"]
     gift.sort_order = None  # a rating change moves the item to a new group, drop its old manual position
     db.session.commit()
-    return jsonify(gift.to_dict())
+    return jsonify(owner_gift_dict(gift))
 
 
 @items_bp.route("/items/<int:item_id>/received", methods=["PATCH"])
@@ -43,11 +56,11 @@ def update_received(item_id):
         for claim in list(gift.claims):
             db.session.delete(claim)
         db.session.commit()
-        return jsonify(gift.to_dict())
+        return jsonify(owner_gift_dict(gift))
 
     gift.received = new_received
     db.session.commit()
-    return jsonify(gift.to_dict())
+    return jsonify(owner_gift_dict(gift))
 
 
 @items_bp.route("/items", methods=["POST"])
@@ -73,7 +86,7 @@ def create_item():
     )
     db.session.add(gift)
     db.session.commit()
-    return jsonify(gift.to_dict()), 201
+    return jsonify(owner_gift_dict(gift)), 201
 
 
 @items_bp.route("/items/<int:item_id>", methods=["PUT"])
@@ -109,7 +122,7 @@ def update_item(item_id):
         gift.sort_order = data["sort_order"]
 
     db.session.commit()
-    return jsonify(gift.to_dict())
+    return jsonify(owner_gift_dict(gift))
 
 
 @items_bp.route("/items/<int:item_id>", methods=["DELETE"])
@@ -126,9 +139,40 @@ def delete_item(item_id):
 @items_bp.route("/items/<int:item_id>/claim-info", methods=["GET"])
 @login_required
 def item_claim_info(item_id):
-    # deliberately not part of the normal item list response (see Gift.to_dict) --
-    # the owner has to actively ask, e.g. right before deleting something
+    # Count-only preflight for destructive owner actions. Keeping names out of
+    # this response prevents it from bypassing the wishlist's reveal opt-in.
+    gift = db.get_or_404(Gift, item_id)
+    if gift.owner_id != current_user.id:
+        return jsonify({"error": "Not your item"}), 403
+    return jsonify({"claimed_count": len(gift.claims)})
+
+
+@items_bp.route("/items/<int:item_id>/claims", methods=["GET"])
+@login_required
+def item_claims(item_id):
+    # unlike the passive surface gated by claim_management_active() (the lock icon,
+    # claimed_count in the item list, resetting), an owner can always deliberately
+    # reveal a name one at a time -- e.g. right before deleting a claimed item -- no
+    # matter the claim management settings. Before this feature existed, deleting a
+    # claimed item always showed who claimed it with no opt-in at all; this keeps
+    # that capability available, just requiring an explicit click instead of showing
+    # it automatically.
     gift = db.get_or_404(Gift, item_id)
     if gift.owner_id != current_user.id:
         return jsonify({"error": "Not your item"}), 403
     return jsonify({"claimed_by": [claim.claimed_by for claim in gift.claims]})
+
+
+@items_bp.route("/items/<int:item_id>/claims", methods=["DELETE"])
+@login_required
+def reset_item_claims(item_id):
+    gift = db.get_or_404(Gift, item_id)
+    if gift.owner_id != current_user.id:
+        return jsonify({"error": "Not your item"}), 403
+    if not claim_management_active():
+        return jsonify({"error": "Claim management is disabled for this wishlist"}), 403
+
+    for claim in list(gift.claims):
+        db.session.delete(claim)
+    db.session.commit()
+    return jsonify(owner_gift_dict(gift))

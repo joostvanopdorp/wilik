@@ -1,8 +1,8 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import StarRating from './StarRating'
 import GiftForm from './GiftForm'
 import ImagePlaceholder from './ImagePlaceholder'
-import { PencilIcon, TrashIcon, ExternalLinkIcon, GripIcon, CheckIcon, UndoIcon } from './Icons'
+import { PencilIcon, TrashIcon, ExternalLinkIcon, GripIcon, CheckIcon, UndoIcon, LockIcon, CloseIcon } from './Icons'
 import { formatPrice } from '../formatPrice'
 
 const API_BASE = '/api'
@@ -13,11 +13,15 @@ function GiftCard({
   decimalSeparator,
   showImagePlaceholder,
   showBackgroundPattern,
+  claimManagementEnabled,
+  lockIconClaimedOnly,
+  claimDeleteWarningSkipped,
   onRatingChange,
   onUpdate,
   onDelete,
   onReorder,
   onReceivedChange,
+  onClaimsReset,
   dragState,
   onDragStart,
   onDragMove,
@@ -25,6 +29,36 @@ function GiftCard({
   onDragEnd,
 }) {
   const [isEditing, setIsEditing] = useState(false)
+  const [claimManagerOpen, setClaimManagerOpen] = useState(false)
+  const [claimants, setClaimants] = useState(null)
+  const [claimError, setClaimError] = useState(null)
+  const [claimActionPending, setClaimActionPending] = useState(false)
+  const [deleteNoticeOpen, setDeleteNoticeOpen] = useState(false)
+  const [deleteNoticeCount, setDeleteNoticeCount] = useState(0)
+  const [deleteClaimants, setDeleteClaimants] = useState(null)
+  const [deleteClaimError, setDeleteClaimError] = useState(null)
+  const [deleteRevealPending, setDeleteRevealPending] = useState(false)
+  const claimManagerRef = useRef(null)
+  const deleteNoticeRef = useRef(null)
+
+  useEffect(() => {
+    const activeRef = claimManagerOpen ? claimManagerRef : deleteNoticeOpen ? deleteNoticeRef : null
+    if (!activeRef) return undefined
+
+    const previouslyFocused = document.activeElement
+    activeRef.current?.focus()
+    function handleKeyDown(event) {
+      if (event.key === 'Escape') {
+        setClaimManagerOpen(false)
+        setDeleteNoticeOpen(false)
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown)
+      previouslyFocused?.focus()
+    }
+  }, [claimManagerOpen, deleteNoticeOpen])
 
   if (isEditing) {
     return (
@@ -86,6 +120,64 @@ function GiftCard({
     window.addEventListener('pointercancel', finishDrag)
   }
 
+  function openClaimManager(event) {
+    event.stopPropagation()
+    setClaimants(null)
+    setClaimError(null)
+    setClaimManagerOpen(true)
+  }
+
+  function revealClaimants() {
+    setClaimActionPending(true)
+    setClaimError(null)
+    fetch(`${API_BASE}/items/${gift.id}/claims`, { credentials: 'include' })
+      .then((response) => {
+        if (!response.ok) return response.json().then((data) => Promise.reject(new Error(data.error)))
+        return response.json()
+      })
+      .then((data) => setClaimants(data.claimed_by))
+      .catch((error) => setClaimError(error.message || 'Could not reveal claimants'))
+      .finally(() => setClaimActionPending(false))
+  }
+
+  function revealForDelete() {
+    setDeleteRevealPending(true)
+    setDeleteClaimError(null)
+    fetch(`${API_BASE}/items/${gift.id}/claims`, { credentials: 'include' })
+      .then((response) => {
+        if (!response.ok) return response.json().then((data) => Promise.reject(new Error(data.error)))
+        return response.json()
+      })
+      .then((data) => setDeleteClaimants(data.claimed_by))
+      .catch((error) => setDeleteClaimError(error.message || 'Could not reveal claimants'))
+      .finally(() => setDeleteRevealPending(false))
+  }
+
+  function resetClaims() {
+    const count = gift.claimed_count ?? 0
+    const proceed = confirm(
+      `Reset ${count === 1 ? 'the claim' : `all ${count} claims`} for "${gift.title}"? Visitors will be able to claim it again.`
+    )
+    if (!proceed) return
+
+    setClaimActionPending(true)
+    setClaimError(null)
+    fetch(`${API_BASE}/items/${gift.id}/claims`, {
+      method: 'DELETE',
+      credentials: 'include',
+    })
+      .then((response) => {
+        if (!response.ok) return response.json().then((data) => Promise.reject(new Error(data.error)))
+        return response.json()
+      })
+      .then((updatedGift) => {
+        onClaimsReset(updatedGift)
+        setClaimManagerOpen(false)
+      })
+      .catch((error) => setClaimError(error.message || 'Could not reset claims'))
+      .finally(() => setClaimActionPending(false))
+  }
+
   return (
     <div
       className={classNames.join(' ')}
@@ -102,6 +194,17 @@ function GiftCard({
           <GripIcon />
         </span>
         <span className="gift-card__action-bar-buttons">
+          {claimManagementEnabled && (!lockIconClaimedOnly || (gift.claimed_count ?? 0) > 0) && (
+            <button
+              type="button"
+              className="icon-button"
+              aria-label="Manage claims"
+              title="Manage claims"
+              onClick={openClaimManager}
+            >
+              <LockIcon />
+            </button>
+          )}
           {onReceivedChange && (
             <button
               type="button"
@@ -117,7 +220,7 @@ function GiftCard({
                   fetch(`${API_BASE}/items/${gift.id}/claim-info`, { credentials: 'include' })
                     .then((response) => response.json())
                     .then((data) => {
-                      const count = data.claimed_by.length
+                      const count = data.claimed_count
                       const proceed = confirm(
                         count > 0
                           ? `This item has unlimited quantity, so marking it received won't remove it from your list. It'll just clear the ${count} existing claim${count === 1 ? '' : 's'} so people can keep gifting it. Continue?`
@@ -155,16 +258,14 @@ function GiftCard({
               fetch(`${API_BASE}/items/${gift.id}/claim-info`, { credentials: 'include' })
                 .then((response) => response.json())
                 .then((data) => {
-                  if (data.claimed_by.length === 0) {
+                  if (data.claimed_count === 0 || claimDeleteWarningSkipped) {
                     if (confirm(`Delete "${gift.title}"?`)) onDelete(gift.id)
                     return
                   }
-                  const proceed = confirm(
-                    `"${gift.title}" has already been claimed by ${data.claimed_by.length} ${data.claimed_by.length === 1 ? 'person' : 'people'}. (If you received this gift already, use the checkmark instead to archive it to your Received list.) Delete anyway?`
-                  )
-                  if (!proceed) return
-                  onDelete(gift.id)
-                  alert(`Deleted. It had been claimed by: ${data.claimed_by.join(', ')}.`)
+                  setDeleteNoticeCount(data.claimed_count)
+                  setDeleteClaimants(null)
+                  setDeleteClaimError(null)
+                  setDeleteNoticeOpen(true)
                 })
             }}
           >
@@ -172,6 +273,144 @@ function GiftCard({
           </button>
         </span>
       </div>
+      {claimManagerOpen && (
+        <div
+          className="claim-manager__backdrop"
+          role="presentation"
+          onClick={(event) => {
+            event.stopPropagation()
+            if (!claimActionPending) setClaimManagerOpen(false)
+          }}
+        >
+          <section
+            ref={claimManagerRef}
+            className="claim-manager"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby={`claim-manager-title-${gift.id}`}
+            tabIndex={-1}
+            onClick={(event) => event.stopPropagation()}
+          >
+            <button
+              type="button"
+              className="icon-button claim-manager__close"
+              aria-label="Close"
+              title="Close"
+              onClick={() => setClaimManagerOpen(false)}
+              disabled={claimActionPending}
+            >
+              <CloseIcon />
+            </button>
+            <h3 id={`claim-manager-title-${gift.id}`}>Manage claims</h3>
+            <p>
+              “{gift.title}”{' '}
+              {(gift.claimed_count ?? 0) === 0
+                ? 'has no active claims'
+                : `has ${gift.claimed_count} active ${gift.claimed_count === 1 ? 'claim' : 'claims'}`}
+            </p>
+            {(gift.claimed_count ?? 0) > 0 && claimants === null && (
+              <p className="claim-manager__hint">
+                Names stay hidden until you choose to reveal{'\u00A0'}them
+              </p>
+            )}
+            {claimants !== null && (
+              <div className="claim-manager__names">
+                <strong>Claimed by</strong>
+                <ul>
+                  {claimants.map((name, index) => (
+                    <li key={`${name}-${index}`}>{name}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            {claimError && <p className="form-error">{claimError}</p>}
+            {(gift.claimed_count ?? 0) > 0 && (
+              <div className="claim-manager__actions">
+                {claimants === null && (
+                  <button type="button" className="btn-primary" onClick={revealClaimants} disabled={claimActionPending}>
+                    Reveal {gift.claimed_count === 1 ? 'name' : 'names'}
+                  </button>
+                )}
+                <button type="button" className="btn-danger" onClick={resetClaims} disabled={claimActionPending}>
+                  Reset {gift.claimed_count === 1 ? 'claim' : 'all claims'}
+                </button>
+              </div>
+            )}
+          </section>
+        </div>
+      )}
+      {deleteNoticeOpen && (
+        <div
+          className="claim-manager__backdrop"
+          role="presentation"
+          onClick={(event) => {
+            event.stopPropagation()
+            setDeleteNoticeOpen(false)
+          }}
+        >
+          <section
+            ref={deleteNoticeRef}
+            className="claim-manager"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby={`delete-notice-title-${gift.id}`}
+            tabIndex={-1}
+            onClick={(event) => event.stopPropagation()}
+          >
+            <button
+              type="button"
+              className="icon-button claim-manager__close"
+              aria-label="Close"
+              title="Close"
+              onClick={() => setDeleteNoticeOpen(false)}
+            >
+              <CloseIcon />
+            </button>
+            <h3 id={`delete-notice-title-${gift.id}`}>Delete claimed item?</h3>
+            {deleteClaimants === null && (
+              <p>
+                “{gift.title}” has been claimed by{' '}
+                {deleteNoticeCount === 1 ? 'someone' : `${deleteNoticeCount} people`}: reveal who, or delete without
+                knowing
+              </p>
+            )}
+            {!gift.received && onReceivedChange && (
+              <p className="claim-manager__suggestion">
+                If you already received this gift, use the checkmark instead to archive it
+              </p>
+            )}
+            {deleteClaimants !== null && (
+              <div className="claim-manager__names">
+                <strong>Claimed by</strong>
+                <ul>
+                  {deleteClaimants.map((name, index) => (
+                    <li key={`${name}-${index}`}>{name}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            {deleteClaimError && <p className="form-error">{deleteClaimError}</p>}
+            <div className="claim-manager__actions">
+              {deleteClaimants === null && (
+                <button type="button" className="btn-primary" onClick={revealForDelete} disabled={deleteRevealPending}>
+                  Reveal {deleteNoticeCount === 1 ? 'name' : 'names'}
+                </button>
+              )}
+              <button
+                type="button"
+                className="btn-danger"
+                disabled={deleteRevealPending}
+                onClick={() => {
+                  setDeleteNoticeOpen(false)
+                  onDelete(gift.id)
+                }}
+              >
+                {deleteClaimants === null ? 'Delete without knowing' : 'Delete'}
+              </button>
+            </div>
+          </section>
+        </div>
+      )}
       {gift.image_url ? (
         <img className="gift-card__img" src={gift.image_url} alt={gift.title} />
       ) : (

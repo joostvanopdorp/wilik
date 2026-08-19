@@ -38,6 +38,10 @@ def update_settings():
         if data["default_color_scheme"] not in COLOR_SCHEME_OPTIONS:
             return jsonify({"error": "Invalid color scheme"}), 400
         settings.default_color_scheme = data["default_color_scheme"]
+    if "claim_management_site_enabled" in data:
+        settings.claim_management_site_enabled = bool(data["claim_management_site_enabled"])
+    if "claim_delete_warning_skipped" in data:
+        settings.claim_delete_warning_skipped = bool(data["claim_delete_warning_skipped"])
     db.session.commit()
     return jsonify(settings.to_dict())
 
@@ -163,5 +167,7 @@ def update_user(user_id):
     user.guest_filter_by_brand_enabled = data.get(
         "guest_filter_by_brand_enabled", user.guest_filter_by_brand_enabled
     )
+    user.claim_management_enabled = data.get("claim_management_enabled", user.claim_management_enabled)
+    user.lock_icon_claimed_only = data.get("lock_icon_claimed_only", user.lock_icon_claimed_only)
     db.session.commit()
     return jsonify(user.to_dict())

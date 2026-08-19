@@ -10,12 +10,25 @@ const NOOP_DRAG_STATE = { draggedId: null, draggedRating: undefined, overId: nul
 
 function ReceivedPage({ currentUser }) {
   const [items, setItems] = useState([])
+  const [claimManagementSiteEnabled, setClaimManagementSiteEnabled] = useState(false)
+  const [claimDeleteWarningSkipped, setClaimDeleteWarningSkipped] = useState(false)
 
   useEffect(() => {
     fetch(API_URL, { credentials: 'include' })
       .then((response) => response.json())
       .then((data) => setItems(data))
   }, [])
+
+  useEffect(() => {
+    fetch(`${API_BASE}/settings`)
+      .then((response) => response.json())
+      .then((data) => {
+        setClaimManagementSiteEnabled(data.claim_management_site_enabled)
+        setClaimDeleteWarningSkipped(data.claim_delete_warning_skipped)
+      })
+  }, [])
+
+  const claimManagementEnabled = currentUser.claim_management_enabled && claimManagementSiteEnabled
 
   function handleUpdate(id, values) {
     fetch(`${API_URL}/${id}`, {
@@ -34,6 +47,10 @@ function ReceivedPage({ currentUser }) {
     fetch(`${API_URL}/${id}`, { method: 'DELETE', credentials: 'include' }).then(() => {
       setItems((current) => current.filter((item) => item.id !== id))
     })
+  }
+
+  function handleClaimsReset(updatedGift) {
+    setItems((current) => current.map((item) => (item.id === updatedGift.id ? updatedGift : item)))
   }
 
   function handleReceivedChange(id, received) {
@@ -79,11 +96,15 @@ function ReceivedPage({ currentUser }) {
               decimalSeparator={currentUser.decimal_separator}
               showImagePlaceholder={currentUser.show_image_placeholder}
               showBackgroundPattern={currentUser.show_background_pattern}
+              claimManagementEnabled={claimManagementEnabled}
+              lockIconClaimedOnly={currentUser.lock_icon_claimed_only}
+              claimDeleteWarningSkipped={claimDeleteWarningSkipped}
               onRatingChange={() => {}}
               onUpdate={handleUpdate}
               onDelete={handleDelete}
               onReorder={() => {}}
               onReceivedChange={handleReceivedChange}
+              onClaimsReset={handleClaimsReset}
               dragState={NOOP_DRAG_STATE}
               onDragStart={() => {}}
               onDragEnter={() => {}}

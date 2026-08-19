@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { THEME_PRESETS } from '../themePresets'
 import { getColorScheme, setColorScheme } from '../colorScheme'
@@ -12,7 +12,14 @@ function SettingsPage({ currentUser, onUpdate }) {
   const [shareRegenerating, setShareRegenerating] = useState(false)
   const [showInDirectory, setShowInDirectory] = useState(currentUser.show_in_directory)
   const [colorScheme, setColorSchemeState] = useState(getColorScheme)
+  const [claimManagementSiteEnabled, setClaimManagementSiteEnabled] = useState(false)
   const shareUrl = `${window.location.origin}/list/${currentUser.share_token}`
+
+  useEffect(() => {
+    fetch(`${API_BASE}/settings`)
+      .then((response) => response.json())
+      .then((data) => setClaimManagementSiteEnabled(data.claim_management_site_enabled))
+  }, [])
 
   function handleColorSchemeChange(event) {
     const value = event.target.value
@@ -72,6 +79,8 @@ function SettingsPage({ currentUser, onUpdate }) {
   const [guestSortByPrice, setGuestSortByPrice] = useState(currentUser.guest_sort_by_price_enabled)
   const [guestFilterByLabel, setGuestFilterByLabel] = useState(currentUser.guest_filter_by_label_enabled)
   const [guestFilterByBrand, setGuestFilterByBrand] = useState(currentUser.guest_filter_by_brand_enabled)
+  const [claimManagementEnabled, setClaimManagementEnabled] = useState(currentUser.claim_management_enabled)
+  const [lockIconClaimedOnly, setLockIconClaimedOnly] = useState(currentUser.lock_icon_claimed_only)
   const [wishlistError, setWishlistError] = useState(null)
   const [wishlistSaved, setWishlistSaved] = useState(false)
 
@@ -140,6 +149,8 @@ function SettingsPage({ currentUser, onUpdate }) {
         guest_sort_by_price_enabled: guestSortByPrice,
         guest_filter_by_label_enabled: guestFilterByLabel,
         guest_filter_by_brand_enabled: guestFilterByBrand,
+        claim_management_enabled: claimManagementEnabled,
+        lock_icon_claimed_only: lockIconClaimedOnly,
       }),
     }).then((response) => {
       if (!response.ok) {
@@ -164,7 +175,7 @@ function SettingsPage({ currentUser, onUpdate }) {
       <h3>Share your wishlist</h3>
       <div className="card">
         <p className="page__hint" style={{ margin: '0 0 10px' }}>
-          Anyone with this link can view your list and claim items, you'll never see who claimed what
+          Anyone with this link can view your list and claim items
         </p>
         <div className="inline-field">
           <input className="share-link__input" value={shareUrl} readOnly onFocus={(event) => event.target.select()} />
@@ -275,6 +286,34 @@ function SettingsPage({ currentUser, onUpdate }) {
           />
           Let guests filter by brand
         </label>
+
+        {claimManagementSiteEnabled && (
+          <>
+            <h3>Claim management</h3>
+            <p className="page__hint" style={{ margin: '-4px 0 0' }}>
+              Caution: claims normally stay hidden and anonymous to preserve the surprise, this lets you deliberately
+              reveal or reset them
+            </p>
+            <label className="user-admin__checkbox">
+              <input
+                type="checkbox"
+                checked={claimManagementEnabled}
+                onChange={(event) => setClaimManagementEnabled(event.target.checked)}
+              />
+              Let me reveal and manage claims on this wishlist
+            </label>
+            {claimManagementEnabled && (
+              <label className="user-admin__checkbox">
+                <input
+                  type="checkbox"
+                  checked={lockIconClaimedOnly}
+                  onChange={(event) => setLockIconClaimedOnly(event.target.checked)}
+                />
+                Only show the lock icon on already-claimed items (not recommended)
+              </label>
+            )}
+          </>
+        )}
 
         {wishlistError && <p className="form-error">{wishlistError}</p>}
         <div className="gift-form__actions">

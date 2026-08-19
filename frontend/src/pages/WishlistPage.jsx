@@ -10,6 +10,8 @@ const API_URL = `${API_BASE}/items`
 function WishlistPage({ currentUser }) {
   const [items, setItems] = useState([])
   const [isAdding, setIsAdding] = useState(false)
+  const [claimManagementSiteEnabled, setClaimManagementSiteEnabled] = useState(false)
+  const [claimDeleteWarningSkipped, setClaimDeleteWarningSkipped] = useState(false)
   const [dragState, setDragState] = useState({
     draggedId: null,
     draggedRating: undefined,
@@ -23,6 +25,17 @@ function WishlistPage({ currentUser }) {
       .then((response) => response.json())
       .then((data) => setItems(data))
   }, [])
+
+  useEffect(() => {
+    fetch(`${API_BASE}/settings`)
+      .then((response) => response.json())
+      .then((data) => {
+        setClaimManagementSiteEnabled(data.claim_management_site_enabled)
+        setClaimDeleteWarningSkipped(data.claim_delete_warning_skipped)
+      })
+  }, [])
+
+  const claimManagementEnabled = currentUser.claim_management_enabled && claimManagementSiteEnabled
 
   function handleRatingChange(id, rating) {
     fetch(`${API_URL}/${id}/rating`, {
@@ -85,6 +98,10 @@ function WishlistPage({ currentUser }) {
       .then((updatedGift) => {
         setItems((current) => current.map((item) => (item.id === updatedGift.id ? updatedGift : item)))
       })
+  }
+
+  function handleClaimsReset(updatedGift) {
+    setItems((current) => current.map((item) => (item.id === updatedGift.id ? updatedGift : item)))
   }
 
   function handleReorder(draggedId, targetId) {
@@ -185,11 +202,15 @@ function WishlistPage({ currentUser }) {
               decimalSeparator={currentUser.decimal_separator}
               showImagePlaceholder={currentUser.show_image_placeholder}
               showBackgroundPattern={currentUser.show_background_pattern}
+              claimManagementEnabled={claimManagementEnabled}
+              lockIconClaimedOnly={currentUser.lock_icon_claimed_only}
+              claimDeleteWarningSkipped={claimDeleteWarningSkipped}
               onRatingChange={handleRatingChange}
               onUpdate={handleUpdate}
               onDelete={handleDelete}
               onReorder={handleReorder}
               onReceivedChange={handleReceivedChange}
+              onClaimsReset={handleClaimsReset}
               dragState={dragState}
               onDragStart={handleDragStart}
               onDragMove={handleDragMove}

@@ -34,6 +34,8 @@ function AdminPage({ currentUser, appName, onAppNameChange }) {
   const [editGuestSortByPrice, setEditGuestSortByPrice] = useState(false)
   const [editGuestFilterByLabel, setEditGuestFilterByLabel] = useState(false)
   const [editGuestFilterByBrand, setEditGuestFilterByBrand] = useState(false)
+  const [editClaimManagementEnabled, setEditClaimManagementEnabled] = useState(false)
+  const [editLockIconClaimedOnly, setEditLockIconClaimedOnly] = useState(false)
   const [editResetPasswordless, setEditResetPasswordless] = useState(false)
   const [editError, setEditError] = useState(null)
   const [editSaved, setEditSaved] = useState(false)
@@ -43,6 +45,10 @@ function AdminPage({ currentUser, appName, onAppNameChange }) {
   const [defaultColorScheme, setDefaultColorScheme] = useState('dark')
   const [defaultColorSchemeError, setDefaultColorSchemeError] = useState(null)
   const [defaultColorSchemeSaved, setDefaultColorSchemeSaved] = useState(false)
+  const [claimManagementSiteEnabled, setClaimManagementSiteEnabled] = useState(false)
+  const [claimDeleteWarningSkipped, setClaimDeleteWarningSkipped] = useState(false)
+  const [claimManagementSiteError, setClaimManagementSiteError] = useState(null)
+  const [claimManagementSiteSaved, setClaimManagementSiteSaved] = useState(false)
 
   useEffect(() => {
     fetch(`${API_BASE}/users`, { credentials: 'include' })
@@ -56,6 +62,8 @@ function AdminPage({ currentUser, appName, onAppNameChange }) {
       .then((data) => {
         setPublicDirectoryEnabled(data.public_directory_enabled)
         setDefaultColorScheme(data.default_color_scheme)
+        setClaimManagementSiteEnabled(data.claim_management_site_enabled)
+        setClaimDeleteWarningSkipped(data.claim_delete_warning_skipped)
       })
   }, [])
 
@@ -97,6 +105,28 @@ function AdminPage({ currentUser, appName, onAppNameChange }) {
       }
       setDirectorySaved(true)
       setTimeout(() => setDirectorySaved(false), 2000)
+    })
+  }
+
+  function handleClaimManagementSiteSubmit(event) {
+    event.preventDefault()
+    setClaimManagementSiteError(null)
+    setClaimManagementSiteSaved(false)
+    fetch(`${API_BASE}/settings`, {
+      method: 'PUT',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        claim_management_site_enabled: claimManagementSiteEnabled,
+        claim_delete_warning_skipped: claimDeleteWarningSkipped,
+      }),
+    }).then((response) => {
+      if (!response.ok) {
+        response.json().then((data) => setClaimManagementSiteError(data.error))
+        return
+      }
+      setClaimManagementSiteSaved(true)
+      setTimeout(() => setClaimManagementSiteSaved(false), 2000)
     })
   }
 
@@ -208,6 +238,8 @@ function AdminPage({ currentUser, appName, onAppNameChange }) {
     setEditGuestSortByPrice(user.guest_sort_by_price_enabled)
     setEditGuestFilterByLabel(user.guest_filter_by_label_enabled)
     setEditGuestFilterByBrand(user.guest_filter_by_brand_enabled)
+    setEditClaimManagementEnabled(user.claim_management_enabled)
+    setEditLockIconClaimedOnly(user.lock_icon_claimed_only)
     setEditResetPasswordless(false)
     setEditError(null)
     setEditSaved(false)
@@ -235,6 +267,8 @@ function AdminPage({ currentUser, appName, onAppNameChange }) {
         guest_sort_by_price_enabled: editGuestSortByPrice,
         guest_filter_by_label_enabled: editGuestFilterByLabel,
         guest_filter_by_brand_enabled: editGuestFilterByBrand,
+        claim_management_enabled: editClaimManagementEnabled,
+        lock_icon_claimed_only: editLockIconClaimedOnly,
       }),
     }).then((response) => {
       if (!response.ok) {
@@ -469,6 +503,30 @@ function AdminPage({ currentUser, appName, onAppNameChange }) {
                     Let guests filter by brand
                   </label>
 
+                  {claimManagementSiteEnabled && (
+                    <>
+                      <h3>Claim management</h3>
+                      <label className="user-admin__checkbox">
+                        <input
+                          type="checkbox"
+                          checked={editClaimManagementEnabled}
+                          onChange={(event) => setEditClaimManagementEnabled(event.target.checked)}
+                        />
+                        Let this user reveal and manage claims on their wishlist
+                      </label>
+                      {editClaimManagementEnabled && (
+                        <label className="user-admin__checkbox">
+                          <input
+                            type="checkbox"
+                            checked={editLockIconClaimedOnly}
+                            onChange={(event) => setEditLockIconClaimedOnly(event.target.checked)}
+                          />
+                          Only show the lock icon on already-claimed items (not recommended)
+                        </label>
+                      )}
+                    </>
+                  )}
+
                   {editError && <p className="form-error">{editError}</p>}
                   <div className="gift-form__actions">
                     <button type="submit">Save</button>
@@ -577,6 +635,38 @@ function AdminPage({ currentUser, appName, onAppNameChange }) {
         <div className="gift-form__actions">
           <button type="submit">Save</button>
           {directorySaved && (
+            <p className="form-success">
+              <span className="form-success__icon">
+                <CheckIcon />
+              </span>
+              Saved
+            </p>
+          )}
+        </div>
+      </form>
+
+      <h3>Claim management</h3>
+      <form className="gift-form" onSubmit={handleClaimManagementSiteSubmit}>
+        <label className="user-admin__checkbox">
+          <input
+            type="checkbox"
+            checked={claimManagementSiteEnabled}
+            onChange={(event) => setClaimManagementSiteEnabled(event.target.checked)}
+          />
+          Allow wishlist owners to opt into revealing and resetting claims on their own list
+        </label>
+        <label className="user-admin__checkbox">
+          <input
+            type="checkbox"
+            checked={claimDeleteWarningSkipped}
+            onChange={(event) => setClaimDeleteWarningSkipped(event.target.checked)}
+          />
+          Skip the warning when deleting an already-claimed item (not recommended)
+        </label>
+        {claimManagementSiteError && <p className="form-error">{claimManagementSiteError}</p>}
+        <div className="gift-form__actions">
+          <button type="submit">Save</button>
+          {claimManagementSiteSaved && (
             <p className="form-success">
               <span className="form-success__icon">
                 <CheckIcon />
