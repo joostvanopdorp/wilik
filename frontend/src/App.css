@@ -459,6 +459,8 @@
 
 .gift-card__body h3 {
   margin: 0;
+  font-family: var(--sans);
+  font-weight: 700;
   font-size: 17px;
   color: var(--text-h);
 }
