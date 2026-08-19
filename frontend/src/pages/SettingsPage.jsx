@@ -12,6 +12,7 @@ function SettingsPage({ currentUser, onUpdate }) {
   const [shareRegenerating, setShareRegenerating] = useState(false)
   const [showInDirectory, setShowInDirectory] = useState(currentUser.show_in_directory)
   const [colorScheme, setColorSchemeState] = useState(getColorScheme)
+  const [themeSaved, setThemeSaved] = useState(false)
   const [claimManagementSiteEnabled, setClaimManagementSiteEnabled] = useState(false)
   const shareUrl = `${window.location.origin}/list/${currentUser.share_token}`
 
@@ -25,6 +26,12 @@ function SettingsPage({ currentUser, onUpdate }) {
     const value = event.target.value
     setColorSchemeState(value)
     setColorScheme(value)
+  }
+
+  function handleThemeSubmit(event) {
+    event.preventDefault()
+    setThemeSaved(true)
+    setTimeout(() => setThemeSaved(false), 2000)
   }
 
   function handleCopyShareUrl() {
@@ -508,7 +515,7 @@ function SettingsPage({ currentUser, onUpdate }) {
       </form>
 
       <h3>App theme</h3>
-      <div className="gift-form">
+      <form className="gift-form" onSubmit={handleThemeSubmit}>
         <p className="info-block" style={{ marginTop: 0, marginBottom: 4 }}>
           <InfoIcon />
           Only changes how the app looks for you. Wishlist visitors aren't affected.
@@ -518,7 +525,18 @@ function SettingsPage({ currentUser, onUpdate }) {
           <option value="light">Light</option>
           <option value="auto">Match system</option>
         </select>
-      </div>
+        <div className="gift-form__actions">
+          <button type="submit">Save</button>
+          {themeSaved && (
+            <p className="form-success">
+              <span className="form-success__icon">
+                <CheckIcon />
+              </span>
+              Saved
+            </p>
+          )}
+        </div>
+      </form>
     </div>
   )
 }
