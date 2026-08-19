@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import GiftCard from '../components/GiftCard'
 import GiftForm from '../components/GiftForm'
-import { PlusIcon, SparkleIcon, GripIcon } from '../components/Icons'
+import { PlusIcon, SparkleIcon, GripIcon, SpinnerIcon } from '../components/Icons'
 import { sortGifts } from '../sortGifts'
 
 const API_BASE = '/api'
@@ -9,6 +9,7 @@ const API_URL = `${API_BASE}/items`
 
 function WishlistPage({ currentUser }) {
   const [items, setItems] = useState([])
+  const [isLoading, setIsLoading] = useState(true)
   const [isAdding, setIsAdding] = useState(false)
   const [claimManagementSiteEnabled, setClaimManagementSiteEnabled] = useState(false)
   const [claimDeleteWarningSkipped, setClaimDeleteWarningSkipped] = useState(false)
@@ -24,6 +25,7 @@ function WishlistPage({ currentUser }) {
     fetch(API_URL, { credentials: 'include' })
       .then((response) => response.json())
       .then((data) => setItems(data))
+      .finally(() => setIsLoading(false))
   }, [])
 
   useEffect(() => {
@@ -184,7 +186,13 @@ function WishlistPage({ currentUser }) {
               onCancel={() => setIsAdding(false)}
             />
           )}
-          {!isAdding && activeItems.length === 0 && (
+          {!isAdding && isLoading && (
+            <div className="empty-state">
+              <SpinnerIcon width={32} height={32} />
+              <p>Loading your wishlist…</p>
+            </div>
+          )}
+          {!isAdding && !isLoading && activeItems.length === 0 && (
             <div className="empty-state">
               <SparkleIcon />
               <h3>Your wishlist is empty</h3>

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import GiftCard from '../components/GiftCard'
-import { ArchiveIcon } from '../components/Icons'
+import { ArchiveIcon, SpinnerIcon } from '../components/Icons'
 
 const API_BASE = '/api'
 const API_URL = `${API_BASE}/items`
@@ -10,6 +10,7 @@ const NOOP_DRAG_STATE = { draggedId: null, draggedRating: undefined, overId: nul
 
 function ReceivedPage({ currentUser }) {
   const [items, setItems] = useState([])
+  const [isLoading, setIsLoading] = useState(true)
   const [claimManagementSiteEnabled, setClaimManagementSiteEnabled] = useState(false)
   const [claimDeleteWarningSkipped, setClaimDeleteWarningSkipped] = useState(false)
 
@@ -17,6 +18,7 @@ function ReceivedPage({ currentUser }) {
     fetch(API_URL, { credentials: 'include' })
       .then((response) => response.json())
       .then((data) => setItems(data))
+      .finally(() => setIsLoading(false))
   }, [])
 
   useEffect(() => {
@@ -81,7 +83,13 @@ function ReceivedPage({ currentUser }) {
       <p className="page__hint">Items you've already got, kept off your active wishlist</p>
       <main>
         <div className="gift-grid">
-          {receivedItems.length === 0 && (
+          {isLoading && (
+            <div className="empty-state">
+              <SpinnerIcon width={32} height={32} />
+              <p>Loading…</p>
+            </div>
+          )}
+          {!isLoading && receivedItems.length === 0 && (
             <div className="empty-state">
               <ArchiveIcon width={56} height={56} strokeWidth={1.4} />
               <h3>Nothing here yet</h3>
