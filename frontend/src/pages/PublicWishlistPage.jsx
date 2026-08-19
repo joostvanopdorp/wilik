@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import Logo from '../components/Logo'
 import PublicGiftCard from '../components/PublicGiftCard'
-import { GiftIcon, SparkleIcon } from '../components/Icons'
+import { GiftIcon, SparkleIcon, SpinnerIcon } from '../components/Icons'
 import { sortGifts, sortGiftsByPrice } from '../sortGifts'
 import { themeStyle } from '../themePresets'
 
@@ -119,6 +119,7 @@ function PublicWishlistPage({ appName }) {
   const { token } = useParams()
   const [owner, setOwner] = useState(undefined) // undefined = loading, null = invalid link
   const [items, setItems] = useState([])
+  const [itemsLoading, setItemsLoading] = useState(true)
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [sortBy, setSortBy] = useState('recommended')
   const [labelFilters, setLabelFilters] = useState([])
@@ -135,6 +136,7 @@ function PublicWishlistPage({ appName }) {
     fetch(`${API_BASE}/public/${token}/items`)
       .then((response) => (response.ok ? response.json() : []))
       .then(setItems)
+      .finally(() => setItemsLoading(false))
   }, [token])
 
   useEffect(() => {
@@ -339,7 +341,13 @@ function PublicWishlistPage({ appName }) {
               </button>
             </div>
           )}
-          {items.length === 0 && (
+          {itemsLoading && (
+            <div className="empty-state">
+              <SpinnerIcon width={32} height={32} />
+              <p>Loading…</p>
+            </div>
+          )}
+          {!itemsLoading && items.length === 0 && (
             <div className="empty-state">
               <SparkleIcon />
               <h3>This wishlist is empty</h3>
