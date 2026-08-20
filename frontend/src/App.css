@@ -921,8 +921,16 @@ button:hover {
 }
 
 .not-recommended {
-  font-style: italic;
-  color: var(--accent-border);
+  display: inline-flex;
+  align-items: center;
+  margin-left: 6px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: var(--accent-bg);
+  color: var(--text);
+  font-style: normal;
+  font-weight: 600;
+  font-size: 0.85em;
 }
 
 .gift-form__image-preview {
