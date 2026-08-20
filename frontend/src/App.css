@@ -925,12 +925,13 @@ button:hover {
   align-items: center;
   margin-left: 6px;
   padding: 0 5px;
-  border-radius: 999px;
+  border-radius: 5px;
   background: var(--accent-bg);
-  color: var(--text);
+  color: var(--accent);
   font-style: normal;
   font-weight: 600;
   font-size: 0.85em;
+  line-height: 1.5;
 }
 
 .gift-form__image-preview {
