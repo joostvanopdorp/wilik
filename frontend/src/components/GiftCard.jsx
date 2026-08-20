@@ -1,7 +1,8 @@
-import { useEffect, useRef, useState } from 'react'
+import { useState } from 'react'
 import StarRating from './StarRating'
 import GiftForm from './GiftForm'
 import ImagePlaceholder from './ImagePlaceholder'
+import Modal from './Modal'
 import {
   PencilIcon,
   TrashIcon,
@@ -10,7 +11,6 @@ import {
   CheckIcon,
   UndoIcon,
   LockIcon,
-  CloseIcon,
   InfoIcon,
 } from './Icons'
 import { formatPrice } from '../formatPrice'
@@ -48,27 +48,6 @@ function GiftCard({
   const [deleteClaimants, setDeleteClaimants] = useState(null)
   const [deleteClaimError, setDeleteClaimError] = useState(null)
   const [deleteRevealPending, setDeleteRevealPending] = useState(false)
-  const claimManagerRef = useRef(null)
-  const deleteNoticeRef = useRef(null)
-
-  useEffect(() => {
-    const activeRef = claimManagerOpen ? claimManagerRef : deleteNoticeOpen ? deleteNoticeRef : null
-    if (!activeRef) return undefined
-
-    const previouslyFocused = document.activeElement
-    activeRef.current?.focus()
-    function handleKeyDown(event) {
-      if (event.key === 'Escape') {
-        setClaimManagerOpen(false)
-        setDeleteNoticeOpen(false)
-      }
-    }
-    window.addEventListener('keydown', handleKeyDown)
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown)
-      previouslyFocused?.focus()
-    }
-  }, [claimManagerOpen, deleteNoticeOpen])
 
   if (isEditing) {
     return (
@@ -283,145 +262,99 @@ function GiftCard({
           </button>
         </span>
       </div>
-      {claimManagerOpen && (
-        <div
-          className="claim-manager__backdrop"
-          role="presentation"
-          onClick={(event) => {
-            event.stopPropagation()
-            if (!claimActionPending) setClaimManagerOpen(false)
-          }}
-        >
-          <section
-            ref={claimManagerRef}
-            className="claim-manager"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby={`claim-manager-title-${gift.id}`}
-            tabIndex={-1}
-            onClick={(event) => event.stopPropagation()}
-          >
-            <button
-              type="button"
-              className="icon-button claim-manager__close"
-              aria-label="Close"
-              title="Close"
-              onClick={() => setClaimManagerOpen(false)}
-              disabled={claimActionPending}
-            >
-              <CloseIcon />
-            </button>
-            <h3 id={`claim-manager-title-${gift.id}`}>Manage claims</h3>
-            <p>
-              “{gift.title}”{' '}
-              {(gift.claimed_count ?? 0) === 0
-                ? 'has no active claims'
-                : `has ${gift.claimed_count} active ${gift.claimed_count === 1 ? 'claim' : 'claims'}`}
-            </p>
-            {(gift.claimed_count ?? 0) > 0 && claimants === null && (
-              <p className="claim-manager__hint">
-                Names stay hidden until you choose to reveal{'\u00A0'}them
-              </p>
-            )}
-            {claimants !== null && (
-              <div className="claim-manager__names">
-                <strong>Claimed by</strong>
-                <ul>
-                  {claimants.map((name, index) => (
-                    <li key={`${name}-${index}`}>{name}</li>
-                  ))}
-                </ul>
-              </div>
-            )}
-            {claimError && <p className="form-error">{claimError}</p>}
-            {(gift.claimed_count ?? 0) > 0 && (
-              <div className="claim-manager__actions">
-                {claimants === null && (
-                  <button type="button" className="btn-primary" onClick={revealClaimants} disabled={claimActionPending}>
-                    Reveal {gift.claimed_count === 1 ? 'name' : 'names'}
-                  </button>
-                )}
-                <button type="button" className="btn-danger" onClick={resetClaims} disabled={claimActionPending}>
-                  Reset {gift.claimed_count === 1 ? 'claim' : 'all claims'}
-                </button>
-              </div>
-            )}
-          </section>
-        </div>
-      )}
-      {deleteNoticeOpen && (
-        <div
-          className="claim-manager__backdrop"
-          role="presentation"
-          onClick={(event) => {
-            event.stopPropagation()
-            setDeleteNoticeOpen(false)
-          }}
-        >
-          <section
-            ref={deleteNoticeRef}
-            className="claim-manager"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby={`delete-notice-title-${gift.id}`}
-            tabIndex={-1}
-            onClick={(event) => event.stopPropagation()}
-          >
-            <button
-              type="button"
-              className="icon-button claim-manager__close"
-              aria-label="Close"
-              title="Close"
-              onClick={() => setDeleteNoticeOpen(false)}
-            >
-              <CloseIcon />
-            </button>
-            <h3 id={`delete-notice-title-${gift.id}`}>Delete claimed item?</h3>
-            {deleteClaimants === null && (
-              <p>
-                “{gift.title}” has been claimed by{' '}
-                {deleteNoticeCount === 1 ? 'someone' : `${deleteNoticeCount} people`}: reveal who, or delete without
-                knowing
-              </p>
-            )}
-            {!gift.received && onReceivedChange && (
-              <p className="info-block">
-                <InfoIcon />
-                If you already got this gift, use the checkmark instead to archive it to your list of received items.
-              </p>
-            )}
-            {deleteClaimants !== null && (
-              <div className="claim-manager__names">
-                <strong>Claimed by</strong>
-                <ul>
-                  {deleteClaimants.map((name, index) => (
-                    <li key={`${name}-${index}`}>{name}</li>
-                  ))}
-                </ul>
-              </div>
-            )}
-            {deleteClaimError && <p className="form-error">{deleteClaimError}</p>}
-            <div className="claim-manager__actions">
-              {deleteClaimants === null && (
-                <button type="button" className="btn-primary" onClick={revealForDelete} disabled={deleteRevealPending}>
-                  Reveal {deleteNoticeCount === 1 ? 'name' : 'names'}
-                </button>
-              )}
-              <button
-                type="button"
-                className="btn-danger"
-                disabled={deleteRevealPending}
-                onClick={() => {
-                  setDeleteNoticeOpen(false)
-                  onDelete(gift.id)
-                }}
-              >
-                {deleteClaimants === null ? 'Delete without knowing' : 'Delete'}
+      <Modal
+        open={claimManagerOpen}
+        onClose={() => setClaimManagerOpen(false)}
+        closeDisabled={claimActionPending}
+        titleId={`claim-manager-title-${gift.id}`}
+        className="claim-manager"
+      >
+        <h3 id={`claim-manager-title-${gift.id}`}>Manage claims</h3>
+        <p>
+          “{gift.title}”{' '}
+          {(gift.claimed_count ?? 0) === 0
+            ? 'has no active claims'
+            : `has ${gift.claimed_count} active ${gift.claimed_count === 1 ? 'claim' : 'claims'}`}
+        </p>
+        {(gift.claimed_count ?? 0) > 0 && claimants === null && (
+          <p className="claim-manager__hint">
+            Names stay hidden until you choose to reveal{'\u00A0'}them
+          </p>
+        )}
+        {claimants !== null && (
+          <div className="claim-manager__names">
+            <strong>Claimed by</strong>
+            <ul>
+              {claimants.map((name, index) => (
+                <li key={`${name}-${index}`}>{name}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+        {claimError && <p className="form-error">{claimError}</p>}
+        {(gift.claimed_count ?? 0) > 0 && (
+          <div className="claim-manager__actions">
+            {claimants === null && (
+              <button type="button" className="btn-primary" onClick={revealClaimants} disabled={claimActionPending}>
+                Reveal {gift.claimed_count === 1 ? 'name' : 'names'}
               </button>
-            </div>
-          </section>
+            )}
+            <button type="button" className="btn-danger" onClick={resetClaims} disabled={claimActionPending}>
+              Reset {gift.claimed_count === 1 ? 'claim' : 'all claims'}
+            </button>
+          </div>
+        )}
+      </Modal>
+      <Modal
+        open={deleteNoticeOpen}
+        onClose={() => setDeleteNoticeOpen(false)}
+        titleId={`delete-notice-title-${gift.id}`}
+        className="claim-manager"
+      >
+        <h3 id={`delete-notice-title-${gift.id}`}>Delete claimed item?</h3>
+        {deleteClaimants === null && (
+          <p>
+            “{gift.title}” has been claimed by{' '}
+            {deleteNoticeCount === 1 ? 'someone' : `${deleteNoticeCount} people`}: reveal who, or delete without
+            knowing
+          </p>
+        )}
+        {!gift.received && onReceivedChange && (
+          <p className="info-block">
+            <InfoIcon />
+            If you already got this gift, use the checkmark instead to archive it to your list of received items.
+          </p>
+        )}
+        {deleteClaimants !== null && (
+          <div className="claim-manager__names">
+            <strong>Claimed by</strong>
+            <ul>
+              {deleteClaimants.map((name, index) => (
+                <li key={`${name}-${index}`}>{name}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+        {deleteClaimError && <p className="form-error">{deleteClaimError}</p>}
+        <div className="claim-manager__actions">
+          {deleteClaimants === null && (
+            <button type="button" className="btn-primary" onClick={revealForDelete} disabled={deleteRevealPending}>
+              Reveal {deleteNoticeCount === 1 ? 'name' : 'names'}
+            </button>
+          )}
+          <button
+            type="button"
+            className="btn-danger"
+            disabled={deleteRevealPending}
+            onClick={() => {
+              setDeleteNoticeOpen(false)
+              onDelete(gift.id)
+            }}
+          >
+            {deleteClaimants === null ? 'Delete without knowing' : 'Delete'}
+          </button>
         </div>
-      )}
+      </Modal>
       {gift.image_url ? (
         <img className="gift-card__img" src={gift.image_url} alt={gift.title} />
       ) : (

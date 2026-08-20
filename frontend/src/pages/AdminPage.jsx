@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { PencilIcon, TrashIcon, SpinnerIcon, CheckIcon, CloseIcon, InfoIcon } from '../components/Icons'
+import Modal from '../components/Modal'
 import { THEME_PRESETS } from '../themePresets'
 import { CURRENCY_OPTIONS, DECIMAL_SEPARATOR_OPTIONS } from '../formOptions'
 
@@ -24,15 +25,7 @@ function AdminPage({ currentUser, appName, onAppNameChange }) {
   const [createLinkCopied, setCreateLinkCopied] = useState(false)
   const [editingUserId, setEditingUserId] = useState(null)
   const editInitialRef = useRef(null)
-  const editModalRef = useRef(null)
   const editUsernameInputRef = useRef(null)
-  // captured synchronously when the modal is triggered to open, so the focus-restore
-  // on close is correct even when the modal switches straight to a different user
-  // without unmounting
-  const editTriggerRef = useRef(null)
-  // kept in sync below so the Escape handler always sees the latest unsaved-edits
-  // check, without re-running the focus-management effect on every keystroke
-  const closeEditPanelRef = useRef(null)
   const [editUsername, setEditUsername] = useState('')
   const [editIsAdmin, setEditIsAdmin] = useState(false)
   const [editListName, setEditListName] = useState('')
@@ -48,18 +41,10 @@ function AdminPage({ currentUser, appName, onAppNameChange }) {
   const [editClaimManagementEnabled, setEditClaimManagementEnabled] = useState(false)
   const [editLockIconClaimedOnly, setEditLockIconClaimedOnly] = useState(false)
   const [editResetPasswordless, setEditResetPasswordless] = useState(false)
-  const [editUsernameError, setEditUsernameError] = useState(null)
-  const [editUsernameSaved, setEditUsernameSaved] = useState(false)
-  const [editAdminError, setEditAdminError] = useState(null)
-  const [editAdminSaved, setEditAdminSaved] = useState(false)
-  const [editGeneralError, setEditGeneralError] = useState(null)
-  const [editGeneralSaved, setEditGeneralSaved] = useState(false)
-  const [editAppearanceError, setEditAppearanceError] = useState(null)
-  const [editAppearanceSaved, setEditAppearanceSaved] = useState(false)
-  const [editGuestError, setEditGuestError] = useState(null)
-  const [editGuestSaved, setEditGuestSaved] = useState(false)
-  const [editClaimError, setEditClaimError] = useState(null)
-  const [editClaimSaved, setEditClaimSaved] = useState(false)
+  // one entry per editable section (username/admin/general/appearance/guest/claim),
+  // each shaped { error, saved } -- keeps saveUserFields generic instead of needing
+  // a dedicated error/saved state pair and submit handler per section
+  const [sectionStatus, setSectionStatus] = useState({})
   const [publicDirectoryEnabled, setPublicDirectoryEnabled] = useState(true)
   const [directoryError, setDirectoryError] = useState(null)
   const [directorySaved, setDirectorySaved] = useState(false)
@@ -88,45 +73,6 @@ function AdminPage({ currentUser, appName, onAppNameChange }) {
       })
   }, [])
 
-  useEffect(() => {
-    closeEditPanelRef.current = closeEditPanel
-  })
-
-  useEffect(() => {
-    if (editingUserId === null) return undefined
-    const previouslyFocused = editTriggerRef.current
-    if (editingUserId === currentUser.id) {
-      editUsernameInputRef.current?.focus()
-    } else {
-      editModalRef.current?.focus()
-    }
-    function handleKeyDown(event) {
-      if (event.key === 'Escape') {
-        closeEditPanelRef.current()
-        return
-      }
-      if (event.key === 'Tab') {
-        const focusable = editModalRef.current?.querySelectorAll(
-          'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
-        )
-        if (!focusable || focusable.length === 0) return
-        const first = focusable[0]
-        const last = focusable[focusable.length - 1]
-        if (event.shiftKey && document.activeElement === first) {
-          event.preventDefault()
-          last.focus()
-        } else if (!event.shiftKey && document.activeElement === last) {
-          event.preventDefault()
-          first.focus()
-        }
-      }
-    }
-    window.addEventListener('keydown', handleKeyDown)
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown)
-      previouslyFocused?.focus()
-    }
-  }, [editingUserId, currentUser.id])
 
   function handleAppNameSubmit(event) {
     event.preventDefault()
@@ -303,18 +249,7 @@ function AdminPage({ currentUser, appName, onAppNameChange }) {
     setEditClaimManagementEnabled(user.claim_management_enabled)
     setEditLockIconClaimedOnly(user.lock_icon_claimed_only)
     setEditResetPasswordless(false)
-    setEditUsernameError(null)
-    setEditUsernameSaved(false)
-    setEditAdminError(null)
-    setEditAdminSaved(false)
-    setEditGeneralError(null)
-    setEditGeneralSaved(false)
-    setEditAppearanceError(null)
-    setEditAppearanceSaved(false)
-    setEditGuestError(null)
-    setEditGuestSaved(false)
-    setEditClaimError(null)
-    setEditClaimSaved(false)
+    setSectionStatus({})
     setResetNotice(null)
     setResetSetupLink(null)
     editInitialRef.current = {
@@ -369,13 +304,11 @@ function AdminPage({ currentUser, appName, onAppNameChange }) {
       return
     }
     if (hasUnsavedEdits() && !confirm('Discard unsaved changes?')) return
-    editTriggerRef.current = document.activeElement
     startEditUser(user)
   }
 
-  function saveUserFields(user, fields, setError, setSaved) {
-    setError(null)
-    setSaved(false)
+  function saveUserFields(user, fields, section) {
+    setSectionStatus((current) => ({ ...current, [section]: { error: null, saved: false } }))
     fetch(`${API_BASE}/users/${user.id}`, {
       method: 'PUT',
       credentials: 'include',
@@ -384,7 +317,9 @@ function AdminPage({ currentUser, appName, onAppNameChange }) {
     }).then((response) => {
       if (!response.ok) {
         response.json().then((data) => {
-          if (editInitialRef.current?.id === user.id) setError(data.error)
+          if (editInitialRef.current?.id === user.id) {
+            setSectionStatus((current) => ({ ...current, [section]: { error: data.error, saved: false } }))
+          }
         })
         return
       }
@@ -395,8 +330,10 @@ function AdminPage({ currentUser, appName, onAppNameChange }) {
             ...editInitialRef.current,
             ...Object.fromEntries(Object.keys(fields).map((key) => [key, updatedUser[key]])),
           }
-          setSaved(true)
-          setTimeout(() => setSaved(false), 2000)
+          setSectionStatus((current) => ({ ...current, [section]: { error: null, saved: true } }))
+          setTimeout(() => {
+            setSectionStatus((current) => ({ ...current, [section]: { ...current[section], saved: false } }))
+          }, 2000)
         }
       })
     })
@@ -404,12 +341,12 @@ function AdminPage({ currentUser, appName, onAppNameChange }) {
 
   function handleUsernameSubmit(event, user) {
     event.preventDefault()
-    saveUserFields(user, { username: editUsername }, setEditUsernameError, setEditUsernameSaved)
+    saveUserFields(user, { username: editUsername }, 'username')
   }
 
   function handleAdminSubmit(event, user) {
     event.preventDefault()
-    saveUserFields(user, { is_admin: editIsAdmin }, setEditAdminError, setEditAdminSaved)
+    saveUserFields(user, { is_admin: editIsAdmin }, 'admin')
   }
 
   function handleGeneralSubmit(event, user) {
@@ -422,8 +359,7 @@ function AdminPage({ currentUser, appName, onAppNameChange }) {
         decimal_separator: editDecimalSeparator,
         show_in_directory: editShowInDirectory,
       },
-      setEditGeneralError,
-      setEditGeneralSaved
+      'general'
     )
   }
 
@@ -436,8 +372,7 @@ function AdminPage({ currentUser, appName, onAppNameChange }) {
         show_image_placeholder: editShowImagePlaceholder,
         show_background_pattern: editShowBackgroundPattern,
       },
-      setEditAppearanceError,
-      setEditAppearanceSaved
+      'appearance'
     )
   }
 
@@ -450,8 +385,7 @@ function AdminPage({ currentUser, appName, onAppNameChange }) {
         guest_filter_by_label_enabled: editGuestFilterByLabel,
         guest_filter_by_brand_enabled: editGuestFilterByBrand,
       },
-      setEditGuestError,
-      setEditGuestSaved
+      'guest'
     )
   }
 
@@ -463,8 +397,7 @@ function AdminPage({ currentUser, appName, onAppNameChange }) {
         claim_management_enabled: editClaimManagementEnabled,
         lock_icon_claimed_only: editLockIconClaimedOnly,
       },
-      setEditClaimError,
-      setEditClaimSaved
+      'claim'
     )
   }
 
@@ -516,25 +449,16 @@ function AdminPage({ currentUser, appName, onAppNameChange }) {
         </ul>
       </div>
 
-      {editingUser && (
-        <div className="user-edit-modal__backdrop" role="presentation" onClick={() => closeEditPanel()}>
-          <section
-            ref={editModalRef}
-            className="user-edit-modal"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="user-edit-modal-title"
-            tabIndex={-1}
-            onClick={(event) => event.stopPropagation()}
-          >
-            <button
-              type="button"
-              className="icon-button user-edit-modal__close"
-              aria-label="Close"
-              onClick={() => closeEditPanel()}
-            >
-              <CloseIcon />
-            </button>
+      <Modal
+        open={editingUser !== null}
+        onClose={closeEditPanel}
+        focusKey={editingUserId}
+        titleId="user-edit-modal-title"
+        className="user-edit-modal"
+        initialFocusRef={editingUser?.id === currentUser.id ? editUsernameInputRef : undefined}
+      >
+        {editingUser && (
+          <>
             <h3 id="user-edit-modal-title" className="user-edit-modal__title">
               Manage user: {editingUser.username}
             </h3>
@@ -619,10 +543,10 @@ function AdminPage({ currentUser, appName, onAppNameChange }) {
                     required
                   />
                 </label>
-                {editUsernameError && <p className="form-error">{editUsernameError}</p>}
+                {sectionStatus.username?.error && <p className="form-error">{sectionStatus.username.error}</p>}
                 <div className="gift-form__actions">
                   <button type="submit">Save</button>
-                  {editUsernameSaved && (
+                  {sectionStatus.username?.saved && (
                     <p className="form-success">
                       <span className="form-success__icon">
                         <CheckIcon />
@@ -644,10 +568,10 @@ function AdminPage({ currentUser, appName, onAppNameChange }) {
                     />
                     This user has admin access
                   </label>
-                  {editAdminError && <p className="form-error">{editAdminError}</p>}
+                  {sectionStatus.admin?.error && <p className="form-error">{sectionStatus.admin.error}</p>}
                   <div className="gift-form__actions">
                     <button type="submit">Save</button>
-                    {editAdminSaved && (
+                    {sectionStatus.admin?.saved && (
                       <p className="form-success">
                         <span className="form-success__icon">
                           <CheckIcon />
@@ -700,10 +624,10 @@ function AdminPage({ currentUser, appName, onAppNameChange }) {
                   />
                   List this wishlist in the browsable directory
                 </label>
-                {editGeneralError && <p className="form-error">{editGeneralError}</p>}
+                {sectionStatus.general?.error && <p className="form-error">{sectionStatus.general.error}</p>}
                 <div className="gift-form__actions">
                   <button type="submit">Save</button>
-                  {editGeneralSaved && (
+                  {sectionStatus.general?.saved && (
                     <p className="form-success">
                       <span className="form-success__icon">
                         <CheckIcon />
@@ -750,10 +674,10 @@ function AdminPage({ currentUser, appName, onAppNameChange }) {
                   />
                   Show a subtle background pattern on gift cards
                 </label>
-                {editAppearanceError && <p className="form-error">{editAppearanceError}</p>}
+                {sectionStatus.appearance?.error && <p className="form-error">{sectionStatus.appearance.error}</p>}
                 <div className="gift-form__actions">
                   <button type="submit">Save</button>
-                  {editAppearanceSaved && (
+                  {sectionStatus.appearance?.saved && (
                     <p className="form-success">
                       <span className="form-success__icon">
                         <CheckIcon />
@@ -794,10 +718,10 @@ function AdminPage({ currentUser, appName, onAppNameChange }) {
                   />
                   Let guests filter by brand
                 </label>
-                {editGuestError && <p className="form-error">{editGuestError}</p>}
+                {sectionStatus.guest?.error && <p className="form-error">{sectionStatus.guest.error}</p>}
                 <div className="gift-form__actions">
                   <button type="submit">Save</button>
-                  {editGuestSaved && (
+                  {sectionStatus.guest?.saved && (
                     <p className="form-success">
                       <span className="form-success__icon">
                         <CheckIcon />
@@ -839,10 +763,10 @@ function AdminPage({ currentUser, appName, onAppNameChange }) {
                       </span>
                     </label>
                   )}
-                  {editClaimError && <p className="form-error">{editClaimError}</p>}
+                  {sectionStatus.claim?.error && <p className="form-error">{sectionStatus.claim.error}</p>}
                   <div className="gift-form__actions">
                     <button type="submit">Save</button>
-                    {editClaimSaved && (
+                    {sectionStatus.claim?.saved && (
                       <p className="form-success">
                         <span className="form-success__icon">
                           <CheckIcon />
@@ -854,9 +778,9 @@ function AdminPage({ currentUser, appName, onAppNameChange }) {
                 </form>
               )}
             </div>
-          </section>
-        </div>
-      )}
+          </>
+        )}
+      </Modal>
 
       <h3>Add new user</h3>
       <form className="gift-form" onSubmit={handleCreateUser}>
