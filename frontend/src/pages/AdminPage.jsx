@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { PencilIcon, TrashIcon, SpinnerIcon, CheckIcon, CloseIcon, InfoIcon } from '../components/Icons'
 import { THEME_PRESETS } from '../themePresets'
@@ -23,7 +23,9 @@ function AdminPage({ currentUser, appName, onAppNameChange }) {
   const [createSetupLink, setCreateSetupLink] = useState(null)
   const [createLinkCopied, setCreateLinkCopied] = useState(false)
   const [editingUserId, setEditingUserId] = useState(null)
+  const editInitialRef = useRef(null)
   const [editUsername, setEditUsername] = useState('')
+  const [editIsAdmin, setEditIsAdmin] = useState(false)
   const [editListName, setEditListName] = useState('')
   const [editShowInDirectory, setEditShowInDirectory] = useState(true)
   const [editThemeColor, setEditThemeColor] = useState(null)
@@ -228,6 +230,7 @@ function AdminPage({ currentUser, appName, onAppNameChange }) {
   function startEditUser(user) {
     setEditingUserId(user.id)
     setEditUsername(user.username)
+    setEditIsAdmin(user.is_admin)
     setEditListName(user.list_name)
     setEditShowInDirectory(user.show_in_directory)
     setEditThemeColor(user.theme_color)
@@ -245,6 +248,58 @@ function AdminPage({ currentUser, appName, onAppNameChange }) {
     setEditSaved(false)
     setResetNotice(null)
     setResetSetupLink(null)
+    editInitialRef.current = {
+      username: user.username,
+      is_admin: user.is_admin,
+      list_name: user.list_name,
+      show_in_directory: user.show_in_directory,
+      theme_color: user.theme_color,
+      currency: user.currency,
+      decimal_separator: user.decimal_separator,
+      show_image_placeholder: user.show_image_placeholder,
+      show_background_pattern: user.show_background_pattern,
+      guest_sort_by_price_enabled: user.guest_sort_by_price_enabled,
+      guest_filter_by_label_enabled: user.guest_filter_by_label_enabled,
+      guest_filter_by_brand_enabled: user.guest_filter_by_brand_enabled,
+      claim_management_enabled: user.claim_management_enabled,
+      lock_icon_claimed_only: user.lock_icon_claimed_only,
+    }
+  }
+
+  function hasUnsavedEdits() {
+    const initial = editInitialRef.current
+    if (!initial) return false
+    return (
+      editUsername !== initial.username ||
+      editIsAdmin !== initial.is_admin ||
+      editListName !== initial.list_name ||
+      editShowInDirectory !== initial.show_in_directory ||
+      editThemeColor !== initial.theme_color ||
+      editCurrency !== initial.currency ||
+      editDecimalSeparator !== initial.decimal_separator ||
+      editShowImagePlaceholder !== initial.show_image_placeholder ||
+      editShowBackgroundPattern !== initial.show_background_pattern ||
+      editGuestSortByPrice !== initial.guest_sort_by_price_enabled ||
+      editGuestFilterByLabel !== initial.guest_filter_by_label_enabled ||
+      editGuestFilterByBrand !== initial.guest_filter_by_brand_enabled ||
+      editClaimManagementEnabled !== initial.claim_management_enabled ||
+      editLockIconClaimedOnly !== initial.lock_icon_claimed_only
+    )
+  }
+
+  function closeEditPanel() {
+    if (hasUnsavedEdits() && !confirm('Discard unsaved changes?')) return
+    editInitialRef.current = null
+    setEditingUserId(null)
+  }
+
+  function requestEditUser(user) {
+    if (editingUserId === user.id) {
+      closeEditPanel()
+      return
+    }
+    if (hasUnsavedEdits() && !confirm('Discard unsaved changes?')) return
+    startEditUser(user)
   }
 
   function handleEditSubmit(event, user) {
@@ -257,6 +312,7 @@ function AdminPage({ currentUser, appName, onAppNameChange }) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         username: editUsername,
+        is_admin: editIsAdmin,
         list_name: editListName,
         show_in_directory: editShowInDirectory,
         theme_color: editThemeColor,
@@ -277,6 +333,22 @@ function AdminPage({ currentUser, appName, onAppNameChange }) {
       }
       response.json().then((updatedUser) => {
         setUsers((current) => current.map((u) => (u.id === updatedUser.id ? updatedUser : u)))
+        editInitialRef.current = {
+          username: updatedUser.username,
+          is_admin: updatedUser.is_admin,
+          list_name: updatedUser.list_name,
+          show_in_directory: updatedUser.show_in_directory,
+          theme_color: updatedUser.theme_color,
+          currency: updatedUser.currency,
+          decimal_separator: updatedUser.decimal_separator,
+          show_image_placeholder: updatedUser.show_image_placeholder,
+          show_background_pattern: updatedUser.show_background_pattern,
+          guest_sort_by_price_enabled: updatedUser.guest_sort_by_price_enabled,
+          guest_filter_by_label_enabled: updatedUser.guest_filter_by_label_enabled,
+          guest_filter_by_brand_enabled: updatedUser.guest_filter_by_brand_enabled,
+          claim_management_enabled: updatedUser.claim_management_enabled,
+          lock_icon_claimed_only: updatedUser.lock_icon_claimed_only,
+        }
         setEditSaved(true)
         setTimeout(() => setEditSaved(false), 2000)
       })
@@ -298,7 +370,7 @@ function AdminPage({ currentUser, appName, onAppNameChange }) {
               <div className="user-admin__row">
                 <span>
                   {user.username}
-                  {user.is_admin ? ' (admin)' : ''}
+                  {user.is_admin && <span className="not-recommended"> (admin)</span>}
                   {user.must_change_password ? ' (setup pending)' : ''}
                 </span>
                 <span className="user-admin__row-actions">
@@ -307,7 +379,7 @@ function AdminPage({ currentUser, appName, onAppNameChange }) {
                     className="icon-button"
                     aria-label="Edit user"
                     title="Edit user"
-                    onClick={() => (editingUserId === user.id ? setEditingUserId(null) : startEditUser(user))}
+                    onClick={() => requestEditUser(user)}
                   >
                     <PencilIcon />
                   </button>
@@ -399,6 +471,16 @@ function AdminPage({ currentUser, appName, onAppNameChange }) {
                       autoFocus={user.id === currentUser.id}
                     />
                   </label>
+                  {user.id !== currentUser.id && (
+                    <label className="user-admin__checkbox">
+                      <input
+                        type="checkbox"
+                        checked={editIsAdmin}
+                        onChange={(event) => setEditIsAdmin(event.target.checked)}
+                      />
+                      This user has admin access
+                    </label>
+                  )}
 
                   <h3>General</h3>
                   <label>
@@ -535,7 +617,7 @@ function AdminPage({ currentUser, appName, onAppNameChange }) {
                   {editError && <p className="form-error">{editError}</p>}
                   <div className="gift-form__actions">
                     <button type="submit">Save</button>
-                    <button type="button" onClick={() => setEditingUserId(null)}>
+                    <button type="button" onClick={closeEditPanel}>
                       Cancel
                     </button>
                     {editSaved && (

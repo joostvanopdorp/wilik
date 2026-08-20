@@ -169,5 +169,7 @@ def update_user(user_id):
     )
     user.claim_management_enabled = data.get("claim_management_enabled", user.claim_management_enabled)
     user.lock_icon_claimed_only = data.get("lock_icon_claimed_only", user.lock_icon_claimed_only)
+    if user_id != current_user.id:
+        user.is_admin = data.get("is_admin", user.is_admin)
     db.session.commit()
     return jsonify(user.to_dict())
