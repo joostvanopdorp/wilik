@@ -174,7 +174,7 @@ function GiftForm({ initialValues, defaultCurrency, onSubmit, onCancel }) {
           />
         </label>
       </div>
-      <label className="user-admin__checkbox">
+      <label className="checkbox-row">
         <input type="checkbox" checked={unlimited} onChange={(event) => setUnlimited(event.target.checked)} />
         Unlimited (anyone can claim a copy, it never runs out)
       </label>

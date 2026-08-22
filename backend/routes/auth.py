@@ -217,7 +217,7 @@ def login():
     user.failed_login_attempts = 0
     user.locked_until = None
     db.session.commit()
-    login_user(user)
+    login_user(user, remember=bool(data.get("remember")))
     return jsonify(user.to_dict())
 
 

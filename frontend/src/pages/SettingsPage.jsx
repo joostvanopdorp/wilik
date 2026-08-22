@@ -271,7 +271,7 @@ function SettingsPage({ currentUser, onUpdate }) {
             Generate new link
           </button>
         </div>
-        <label className="user-admin__checkbox" style={{ marginTop: 12 }}>
+        <label className="checkbox-row" style={{ marginTop: 12 }}>
           <input type="checkbox" checked={showInDirectory} onChange={handleShowInDirectoryChange} />
           List my wishlist in the browsable directory
         </label>
@@ -339,7 +339,7 @@ function SettingsPage({ currentUser, onUpdate }) {
             ))}
           </span>
         </label>
-        <label className="user-admin__checkbox">
+        <label className="checkbox-row">
           <input
             type="checkbox"
             checked={showImagePlaceholder}
@@ -347,7 +347,7 @@ function SettingsPage({ currentUser, onUpdate }) {
           />
           Show a placeholder image for items without a photo
         </label>
-        <label className="user-admin__checkbox">
+        <label className="checkbox-row">
           <input
             type="checkbox"
             checked={showBackgroundPattern}
@@ -375,7 +375,7 @@ function SettingsPage({ currentUser, onUpdate }) {
           <InfoIcon />
           Lets guests browsing your list narrow it down themselves. This is handy for longer lists.
         </p>
-        <label className="user-admin__checkbox">
+        <label className="checkbox-row">
           <input
             type="checkbox"
             checked={guestSortByPrice}
@@ -383,7 +383,7 @@ function SettingsPage({ currentUser, onUpdate }) {
           />
           Let guests also sort by price
         </label>
-        <label className="user-admin__checkbox">
+        <label className="checkbox-row">
           <input
             type="checkbox"
             checked={guestFilterByLabel}
@@ -391,7 +391,7 @@ function SettingsPage({ currentUser, onUpdate }) {
           />
           Let guests filter by label
         </label>
-        <label className="user-admin__checkbox">
+        <label className="checkbox-row">
           <input
             type="checkbox"
             checked={guestFilterByBrand}
@@ -423,7 +423,7 @@ function SettingsPage({ currentUser, onUpdate }) {
               you deliberately reveal or reset them.
             </span>
           </p>
-          <label className="user-admin__checkbox">
+          <label className="checkbox-row">
             <input
               type="checkbox"
               checked={claimManagementEnabled}
@@ -432,7 +432,7 @@ function SettingsPage({ currentUser, onUpdate }) {
             Let me reveal and manage claims on this wishlist
           </label>
           {claimManagementEnabled && (
-            <label className="user-admin__checkbox">
+            <label className="checkbox-row">
               <input
                 type="checkbox"
                 checked={lockIconClaimedOnly}

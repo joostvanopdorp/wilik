@@ -7,6 +7,7 @@ function Login({ appName, onLogin }) {
   const [step, setStep] = useState('username')
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
+  const [rememberMe, setRememberMe] = useState(false)
   const [error, setError] = useState(null)
   const [busy, setBusy] = useState(false)
 
@@ -54,7 +55,7 @@ function Login({ appName, onLogin }) {
       method: 'POST',
       credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, password: passwordValue }),
+      body: JSON.stringify({ username, password: passwordValue, remember: rememberMe }),
     }).then((response) => {
       if (!response.ok) {
         response.json().then((data) => {
@@ -139,6 +140,14 @@ function Login({ appName, onLogin }) {
               'Log in'
             )}
           </button>
+          <label className="checkbox-row">
+            <input
+              type="checkbox"
+              checked={rememberMe}
+              onChange={(event) => setRememberMe(event.target.checked)}
+            />
+            Stay logged in
+          </label>
           <button type="button" className="login-form__back" onClick={handleBack} disabled={busy}>
             Not you? Go back
           </button>

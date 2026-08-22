@@ -1297,7 +1297,7 @@ button:hover {
   margin-top: 0;
 }
 
-label.user-admin__checkbox {
+label.checkbox-row {
   display: flex;
   flex-direction: row;
   align-items: flex-start;
@@ -1306,7 +1306,7 @@ label.user-admin__checkbox {
   color: var(--text);
 }
 
-label.user-admin__checkbox input[type='checkbox'] {
+label.checkbox-row input[type='checkbox'] {
   margin-top: 4px;
 }
 

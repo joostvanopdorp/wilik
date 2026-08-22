@@ -1,4 +1,5 @@
 import os
+from datetime import timedelta
 
 from flask import Flask, jsonify
 from flask_cors import CORS
@@ -30,6 +31,11 @@ app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///wilik.db"
 app.config["SESSION_COOKIE_SECURE"] = os.environ.get("SESSION_COOKIE_SECURE", "false").lower() == "true"
 # no legitimate flow here needs the cookie sent cross-site, so this is safe to always enable
 app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
+
+# keeps users logged in across browser restarts instead of only for the current session
+app.config["REMEMBER_COOKIE_DURATION"] = timedelta(days=30)
+app.config["REMEMBER_COOKIE_SECURE"] = app.config["SESSION_COOKIE_SECURE"]
+app.config["REMEMBER_COOKIE_SAMESITE"] = "Lax"
 
 # allows the React app (different port) to send/receive the session cookie
 CORS(app, supports_credentials=True, origins=["http://localhost:5173"])

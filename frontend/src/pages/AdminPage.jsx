@@ -468,7 +468,7 @@ function AdminPage({ currentUser, appName, onAppNameChange }) {
               {editingUser.id !== currentUser.id && (
                 <div className="gift-form">
                   <h3 className="gift-form__badge">Reset password</h3>
-                  <label className="user-admin__checkbox">
+                  <label className="checkbox-row">
                     <input
                       type="checkbox"
                       checked={editResetPasswordless}
@@ -560,7 +560,7 @@ function AdminPage({ currentUser, appName, onAppNameChange }) {
               {editingUser.id !== currentUser.id && (
                 <form className="gift-form" onSubmit={(event) => handleAdminSubmit(event, editingUser)}>
                   <h3 className="gift-form__badge">Admin access</h3>
-                  <label className="user-admin__checkbox">
+                  <label className="checkbox-row">
                     <input
                       type="checkbox"
                       checked={editIsAdmin}
@@ -616,7 +616,7 @@ function AdminPage({ currentUser, appName, onAppNameChange }) {
                     </select>
                   </label>
                 </div>
-                <label className="user-admin__checkbox">
+                <label className="checkbox-row">
                   <input
                     type="checkbox"
                     checked={editShowInDirectory}
@@ -658,7 +658,7 @@ function AdminPage({ currentUser, appName, onAppNameChange }) {
                     ))}
                   </span>
                 </label>
-                <label className="user-admin__checkbox">
+                <label className="checkbox-row">
                   <input
                     type="checkbox"
                     checked={editShowImagePlaceholder}
@@ -666,7 +666,7 @@ function AdminPage({ currentUser, appName, onAppNameChange }) {
                   />
                   Show a placeholder image for items without a photo
                 </label>
-                <label className="user-admin__checkbox">
+                <label className="checkbox-row">
                   <input
                     type="checkbox"
                     checked={editShowBackgroundPattern}
@@ -694,7 +694,7 @@ function AdminPage({ currentUser, appName, onAppNameChange }) {
                   <InfoIcon />
                   Lets guests browsing this user's list narrow it down themselves. This is handy for longer lists.
                 </p>
-                <label className="user-admin__checkbox">
+                <label className="checkbox-row">
                   <input
                     type="checkbox"
                     checked={editGuestSortByPrice}
@@ -702,7 +702,7 @@ function AdminPage({ currentUser, appName, onAppNameChange }) {
                   />
                   Let guests also sort by price
                 </label>
-                <label className="user-admin__checkbox">
+                <label className="checkbox-row">
                   <input
                     type="checkbox"
                     checked={editGuestFilterByLabel}
@@ -710,7 +710,7 @@ function AdminPage({ currentUser, appName, onAppNameChange }) {
                   />
                   Let guests filter by label
                 </label>
-                <label className="user-admin__checkbox">
+                <label className="checkbox-row">
                   <input
                     type="checkbox"
                     checked={editGuestFilterByBrand}
@@ -742,7 +742,7 @@ function AdminPage({ currentUser, appName, onAppNameChange }) {
                       This lets this user deliberately reveal or reset them.
                     </span>
                   </p>
-                  <label className="user-admin__checkbox">
+                  <label className="checkbox-row">
                     <input
                       type="checkbox"
                       checked={editClaimManagementEnabled}
@@ -751,7 +751,7 @@ function AdminPage({ currentUser, appName, onAppNameChange }) {
                     Let this user reveal and manage claims on their wishlist
                   </label>
                   {editClaimManagementEnabled && (
-                    <label className="user-admin__checkbox">
+                    <label className="checkbox-row">
                       <input
                         type="checkbox"
                         checked={editLockIconClaimedOnly}
@@ -788,11 +788,11 @@ function AdminPage({ currentUser, appName, onAppNameChange }) {
           Username
           <input value={username} onChange={(event) => setUsername(event.target.value)} required />
         </label>
-        <label className="user-admin__checkbox">
+        <label className="checkbox-row">
           <input type="checkbox" checked={isAdmin} onChange={(event) => setIsAdmin(event.target.checked)} />
           Make this user an admin
         </label>
-        <label className="user-admin__checkbox">
+        <label className="checkbox-row">
           <input
             type="checkbox"
             checked={passwordless}
@@ -860,7 +860,7 @@ function AdminPage({ currentUser, appName, onAppNameChange }) {
 
       <h3>Gift directory</h3>
       <form className="gift-form" onSubmit={handleDirectorySubmit}>
-        <label className="user-admin__checkbox">
+        <label className="checkbox-row">
           <input
             type="checkbox"
             checked={publicDirectoryEnabled}
@@ -884,7 +884,7 @@ function AdminPage({ currentUser, appName, onAppNameChange }) {
 
       <h3>Claim management</h3>
       <form className="gift-form" onSubmit={handleClaimManagementSiteSubmit}>
-        <label className="user-admin__checkbox">
+        <label className="checkbox-row">
           <input
             type="checkbox"
             checked={claimManagementSiteEnabled}
@@ -892,7 +892,7 @@ function AdminPage({ currentUser, appName, onAppNameChange }) {
           />
           Allow wishlist owners to opt into revealing and resetting claims on their own list
         </label>
-        <label className="user-admin__checkbox">
+        <label className="checkbox-row">
           <input
             type="checkbox"
             checked={claimDeleteWarningSkipped}
