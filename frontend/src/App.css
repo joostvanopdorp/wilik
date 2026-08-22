@@ -1153,6 +1153,8 @@ button:hover {
   text-align: center;
   gap: 8px;
   margin: 0 0 8px;
+  font-family: var(--sans);
+  font-weight: 700;
   font-size: 15px;
 }
 
