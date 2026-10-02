@@ -32,20 +32,26 @@ SCRAPE_HEADERS_BROWSER = {
 scrape_bp = Blueprint("scrape", __name__, url_prefix="/api")
 
 
+def resolve_safe_addrinfo(hostname):
+    """Resolves hostname and returns its addrinfo only if every address is public
+    (never loopback/private/link-local/reserved/multicast); otherwise None."""
+    try:
+        addrinfo = socket.getaddrinfo(hostname, None)
+    except socket.gaierror:
+        return None
+    for family, _, _, _, sockaddr in addrinfo:
+        ip = ipaddress.ip_address(sockaddr[0])
+        if ip.is_private or ip.is_loopback or ip.is_link_local or ip.is_reserved or ip.is_multicast:
+            return None
+    return addrinfo
+
+
 def is_safe_scrape_url(url):
     """Blocks SSRF: only allow public http(s) hosts, never loopback/private/link-local addresses."""
     parsed = urlparse(url)
     if parsed.scheme not in ("http", "https") or not parsed.hostname:
         return False
-    try:
-        addrinfo = socket.getaddrinfo(parsed.hostname, None)
-    except socket.gaierror:
-        return False
-    for family, _, _, _, sockaddr in addrinfo:
-        ip = ipaddress.ip_address(sockaddr[0])
-        if ip.is_private or ip.is_loopback or ip.is_link_local or ip.is_reserved or ip.is_multicast:
-            return False
-    return True
+    return resolve_safe_addrinfo(parsed.hostname) is not None
 
 
 @scrape_bp.route("/scrape", methods=["POST"])
@@ -64,15 +70,28 @@ def scrape_url():
         # address (or DNS-rebind to one) and slip past the up-front check entirely
         current_url = url
         for _ in range(MAX_SCRAPE_REDIRECTS + 1):
-            response = requests.get(current_url, timeout=5, headers=headers, stream=True, allow_redirects=False)
+            hostname = urlparse(current_url).hostname
+            addrinfo = resolve_safe_addrinfo(hostname)
+            if addrinfo is None:
+                raise requests.RequestException("Redirected to an unsafe URL")
+            # Pin the connection to the addresses just validated instead of letting the
+            # socket layer re-resolve the hostname: otherwise an attacker-controlled name
+            # could resolve to a public IP here and a private one a moment later when the
+            # actual TCP connection is made (DNS rebinding).
+            real_getaddrinfo = socket.getaddrinfo
+            socket.getaddrinfo = lambda host, *a, _ai=addrinfo, _host=hostname, **kw: (
+                _ai if host == _host else real_getaddrinfo(host, *a, **kw)
+            )
+            try:
+                response = requests.get(current_url, timeout=5, headers=headers, stream=True, allow_redirects=False)
+            finally:
+                socket.getaddrinfo = real_getaddrinfo
             if response.is_redirect or response.is_permanent_redirect:
                 location = response.headers.get("Location")
                 response.close()
                 if not location:
                     raise requests.RequestException("Redirect with no Location header")
                 current_url = urljoin(current_url, location)
-                if not is_safe_scrape_url(current_url):
-                    raise requests.RequestException("Redirected to an unsafe URL")
                 continue
             response.raise_for_status()
             # product price data (JSON-LD) is often placed in <body>, not <head>, so read
