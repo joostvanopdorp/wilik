@@ -3,4 +3,4 @@
 numpy==2.5.3
 pillow==12.3.0
 playwright==1.63.0
-pyee==13.0.1
+pyee==14.0.0
