@@ -14,7 +14,7 @@
     "dev": "concurrently -n backend,frontend -c blue,green \"npm run dev:backend\" \"npm run dev:frontend\""
   },
   "devDependencies": {
-    "concurrently": "^9.1.0"
+    "concurrently": "^10.0.0"
   },
   "overrides": {
     "shell-quote": "^1.11.0"
