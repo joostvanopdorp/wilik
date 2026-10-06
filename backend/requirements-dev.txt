@@ -1,6 +1,6 @@
 -r requirements.txt
 
-numpy==2.5.1
+numpy==2.5.3
 pillow==12.3.0
-playwright==1.61.0
+playwright==1.63.0
 pyee==13.0.1
