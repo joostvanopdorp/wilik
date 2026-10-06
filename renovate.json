@@ -4,7 +4,7 @@
   "extends": ["config:recommended"],
   "timezone": "Europe/Brussels",
   "labels": ["renovate"],
-  "schedule": ["* * * * 0,6"],
+  "schedule": ["* * * * 6"],
   "minimumReleaseAge": "3 days",
   "osvVulnerabilityAlerts": true,
   "vulnerabilityAlerts": {
