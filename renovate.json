@@ -1,6 +1,31 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": [
-    "config:recommended"
+  "description": "Every push to main builds new images that Watchtower deploys right away, so nothing is automerged: every update is a PR to review and merge by hand. Updates are grouped and opened weekly; security fixes come in immediately.",
+  "extends": ["config:recommended"],
+  "timezone": "Europe/Brussels",
+  "labels": ["renovate"],
+  "schedule": ["* * * * 0,6"],
+  "minimumReleaseAge": "3 days",
+  "osvVulnerabilityAlerts": true,
+  "vulnerabilityAlerts": {
+    "labels": ["renovate", "security"]
+  },
+  "packageRules": [
+    {
+      "description": "Python and npm minor/patch updates: one PR per week",
+      "matchManagers": ["pip_requirements", "npm"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "groupName": "non-major dependencies"
+    },
+    {
+      "description": "Base images in the Dockerfiles (python, node, nginx): one PR, also for minor bumps such as Python 3.13 to 3.14",
+      "matchManagers": ["dockerfile"],
+      "groupName": "Docker base images"
+    },
+    {
+      "description": "GitHub Actions: one PR, majors included",
+      "matchManagers": ["github-actions"],
+      "groupName": "GitHub Actions"
+    }
   ]
 }
