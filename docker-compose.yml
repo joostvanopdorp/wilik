@@ -37,6 +37,9 @@ services:
     # tools that read this file without interpolation, like Komodo, expect a number
     # there and then can't see any service.)
     scale: ${WATCHTOWER_REPLICAS:-1}
+    # Watchtower keeps itself up to date as well.
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     environment:
@@ -49,6 +52,9 @@ services:
   backup:
     profiles: ["backup"]
     image: offen/docker-volume-backup:v2
+    # Watchtower pulls new v2 releases; a new major (v3) needs a change here.
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
     environment:
       BACKUP_CRON_EXPRESSION: "0 3 * * *"
       BACKUP_FILENAME: "wilik-backup-%Y-%m-%dT%H-%M-%S.tar.gz"

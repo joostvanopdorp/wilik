@@ -8,7 +8,7 @@ This describes the pipeline that produces the default images in `docker-compose.
 
 1. Push to `main`.
 2. GitHub Actions (`.github/workflows/build-and-push.yml`) builds the backend and frontend images and pushes them to GHCR, tagged `latest` and with the commit SHA.
-3. Watchtower on your host polls GHCR every 5 minutes (`WATCHTOWER_POLL_INTERVAL`). When it sees a new `latest` image for `backend` or `frontend`, it pulls it and restarts that container. With `WATCHTOWER_REPLICAS=0` in `.env` (Docker Compose 2.24+) the bundled Watchtower doesn't run; then updates only arrive when you (or your own tooling) pull and restart.
+3. Watchtower on your host polls GHCR every 5 minutes (`WATCHTOWER_POLL_INTERVAL`). When it sees a new `latest` image for `backend` or `frontend`, it pulls it and restarts that container. Watchtower also updates itself and the optional `backup` container (within `v2`). With `WATCHTOWER_REPLICAS=0` in `.env` (Docker Compose 2.24+) the bundled Watchtower doesn't run; then updates only arrive when you (or your own tooling) pull and restart.
 4. On every backend start, `entrypoint.sh` backs up the SQLite file, runs `flask db upgrade` (applies any new migrations), then runs `flask bootstrap-db` (a no-op unless the database is empty) before starting gunicorn.
 
 No local Docker build and no manual steps for schema changes: push to `main`, wait a few minutes, done.
