@@ -1,3 +1,5 @@
+import os
+
 from flask import Blueprint, jsonify, request
 from flask_login import current_user, login_required
 
@@ -44,6 +46,15 @@ def update_settings():
         settings.claim_delete_warning_skipped = bool(data["claim_delete_warning_skipped"])
     db.session.commit()
     return jsonify(settings.to_dict())
+
+
+@admin_bp.route("/version")
+@login_required
+def get_version():
+    if not current_user.is_admin:
+        return jsonify({"error": "Admin only"}), 403
+    # set at image build time; "dev" when running from source
+    return jsonify({"version": os.environ.get("APP_VERSION", "dev")})
 
 
 @admin_bp.route("/users")

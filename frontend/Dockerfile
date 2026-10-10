@@ -6,6 +6,9 @@ COPY package.json package-lock.json ./
 RUN npm ci
 
 COPY . .
+# Commit this image was built from (CI passes it in); shown in the admin panel.
+ARG APP_VERSION=dev
+ENV VITE_APP_VERSION=$APP_VERSION
 RUN npm run build
 
 FROM nginx:1.31-alpine

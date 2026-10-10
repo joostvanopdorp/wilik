@@ -1388,3 +1388,9 @@ label.checkbox-row input[type='checkbox'] {
     width: 100%;
   }
 }
+
+.admin-version {
+  margin-top: 32px;
+  font-size: 12px;
+  opacity: 0.6;
+}

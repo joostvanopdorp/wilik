@@ -16,4 +16,9 @@ VOLUME /app/instance
 
 EXPOSE 5000
 
+# Commit this image was built from (CI passes it in); shown in the admin panel.
+# Last, so a new commit doesn't invalidate the layers above.
+ARG APP_VERSION=dev
+ENV APP_VERSION=$APP_VERSION
+
 ENTRYPOINT ["./entrypoint.sh"]

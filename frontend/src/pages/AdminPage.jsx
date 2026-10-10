@@ -7,6 +7,15 @@ import { CURRENCY_OPTIONS, DECIMAL_SEPARATOR_OPTIONS } from '../formOptions'
 
 const API_BASE = '/api'
 
+// Commit the frontend was built from (VITE_APP_VERSION, set by the Docker build).
+const FRONTEND_VERSION = import.meta.env.VITE_APP_VERSION ?? 'dev'
+
+// Commit SHAs shortened like git does; "dev" and the loading state pass through.
+function shortVersion(version) {
+  if (!version) return '…'
+  return /^[0-9a-f]{40}$/.test(version) ? version.slice(0, 7) : version
+}
+
 function AdminPage({ currentUser, appName, onAppNameChange }) {
   const [users, setUsers] = useState([])
   const [appNameInput, setAppNameInput] = useState(appName)
@@ -55,11 +64,18 @@ function AdminPage({ currentUser, appName, onAppNameChange }) {
   const [claimDeleteWarningSkipped, setClaimDeleteWarningSkipped] = useState(false)
   const [claimManagementSiteError, setClaimManagementSiteError] = useState(null)
   const [claimManagementSiteSaved, setClaimManagementSiteSaved] = useState(false)
+  const [backendVersion, setBackendVersion] = useState(null)
 
   useEffect(() => {
     fetch(`${API_BASE}/users`, { credentials: 'include' })
       .then((response) => response.json())
       .then(setUsers)
+  }, [])
+
+  useEffect(() => {
+    fetch(`${API_BASE}/version`, { credentials: 'include' })
+      .then((response) => response.json())
+      .then((data) => setBackendVersion(data.version))
   }, [])
 
   useEffect(() => {
@@ -958,6 +974,10 @@ function AdminPage({ currentUser, appName, onAppNameChange }) {
           )}
         </div>
       </form>
+
+      <p className="admin-version">
+        Version: backend {shortVersion(backendVersion)} · frontend {shortVersion(FRONTEND_VERSION)}
+      </p>
     </div>
   )
 }
