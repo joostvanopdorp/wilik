@@ -31,7 +31,7 @@ docker compose up -d
 
 The app is served on port 8090 (change it with `WILIK_PORT` in `.env`), with a first admin account already created (`Admin` / `admin`). You'll be asked to set a real username and password the first time you log in. That's it for a plain, single-machine setup, no reverse proxy, no backups.
 
-Updates then arrive on their own: Watchtower checks for new images every few minutes and rolls them out automatically, no manual steps, no maintenance window. (Already updating containers another way? Set `WATCHTOWER_REPLICAS=0` in `.env` to turn the bundled Watchtower off.)
+To update, pull the new images and restart: `docker compose pull && docker compose up -d`. Database migrations run on their own when the backend starts. Wilik doesn't update itself; to have that happen automatically (cron, Watchtower, or your own tooling), see [Keeping Wilik up to date](DEPLOY.md#keeping-wilik-up-to-date).
 
 For HTTPS/reverse proxies, off-site backups, rolling back, running your own fork with your own CI/registry, or moving an older install onto this setup, see [DEPLOY.md](DEPLOY.md).
 

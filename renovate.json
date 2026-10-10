@@ -1,6 +1,6 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "description": "Every push to main builds new images that Watchtower deploys right away, so nothing is automerged: every update is a PR to review and merge by hand. Updates are grouped and opened weekly; security fixes come in immediately.",
+  "description": "Every push to main builds new latest images that auto-updating installs pick up within minutes, so nothing is automerged: every update is a PR to review and merge by hand. Updates are grouped and opened weekly; security fixes come in immediately.",
   "extends": ["config:recommended"],
   "timezone": "Europe/Brussels",
   "labels": ["renovate"],
