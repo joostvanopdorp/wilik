@@ -82,7 +82,7 @@ Setup:
    ```
    (A plain `docker compose up -d`, without `--profile backup`, leaves it out entirely, e.g. if you set up backups later, or never want them.)
 
-Runs daily at 03:00 by default (`BACKUP_CRON_EXPRESSION`) and keeps 30 days of backups (`BACKUP_RETENTION_DAYS`), both configurable via `.env`. Backups land under the `wilik/` path in your bucket.
+Runs daily at 03:00 by default (`BACKUP_CRON_EXPRESSION`) and keeps 30 days of backups (`BACKUP_RETENTION_DAYS`), both configurable via `.env`. The schedule is in UTC unless you set `TZ` in `.env` (e.g. `TZ=Europe/Brussels`), which also keeps it at the same local time across daylight saving changes. Backups land under the `wilik/` path in your bucket.
 
 ## Rolling back
 

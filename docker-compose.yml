@@ -36,10 +36,12 @@ services:
     labels:
       - "com.centurylinklabs.watchtower.enable=true"
     environment:
-      BACKUP_CRON_EXPRESSION: "0 3 * * *"
+      # The schedule runs in TZ (default UTC).
+      TZ: ${TZ:-}
+      BACKUP_CRON_EXPRESSION: ${BACKUP_CRON_EXPRESSION:-0 3 * * *}
       BACKUP_FILENAME: "wilik-backup-%Y-%m-%dT%H-%M-%S.tar.gz"
       BACKUP_PRUNING_PREFIX: "wilik-backup-"
-      BACKUP_RETENTION_DAYS: "30"
+      BACKUP_RETENTION_DAYS: ${BACKUP_RETENTION_DAYS:-30}
       AWS_S3_BUCKET_NAME: ${BACKUP_S3_BUCKET:-}
       AWS_S3_PATH: "wilik"
       AWS_ACCESS_KEY_ID: ${BACKUP_S3_ACCESS_KEY_ID:-}
