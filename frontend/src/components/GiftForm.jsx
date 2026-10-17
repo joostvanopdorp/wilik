@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import StarRating from './StarRating'
 import { CURRENCY_OPTIONS } from '../formOptions'
 
@@ -21,11 +21,8 @@ function GiftForm({ initialValues, defaultCurrency, onSubmit, onCancel }) {
   const [rating, setRating] = useState(initialValues?.rating ?? null)
   const [scraping, setScraping] = useState(false)
   const [scrapeError, setScrapeError] = useState(null)
-  const [imagePreviewError, setImagePreviewError] = useState(false)
-
-  useEffect(() => {
-    setImagePreviewError(false)
-  }, [values.image_url])
+  // the URL whose preview failed to load; a new URL is previewed again
+  const [failedImageUrl, setFailedImageUrl] = useState(null)
 
   function handleChange(event) {
     const { name, value } = event.target
@@ -91,12 +88,12 @@ function GiftForm({ initialValues, defaultCurrency, onSubmit, onCancel }) {
         Image URL
         <input name="image_url" value={values.image_url} onChange={handleChange} placeholder="https://..." />
       </label>
-      {values.image_url && !imagePreviewError && (
+      {values.image_url && values.image_url !== failedImageUrl && (
         <img
           src={values.image_url}
           alt="Preview"
           className="gift-form__image-preview"
-          onError={() => setImagePreviewError(true)}
+          onError={() => setFailedImageUrl(values.image_url)}
         />
       )}
       <div className="gift-form__row">

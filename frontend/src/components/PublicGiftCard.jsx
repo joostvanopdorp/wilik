@@ -1,5 +1,5 @@
 import StarRating from './StarRating'
-import ImagePlaceholder from './ImagePlaceholder'
+import GiftImage from './GiftImage'
 import { GiftIcon, LockIcon, UndoIcon, ExternalLinkIcon } from './Icons'
 import { formatPrice } from '../formatPrice'
 
@@ -72,11 +72,7 @@ function PublicGiftCard({ gift, currency, decimalSeparator, showBackgroundPatter
         className={classNames.join(' ')}
         onClick={gift.url ? () => window.open(gift.url, '_blank', 'noopener,noreferrer') : undefined}
       >
-        {gift.image_url ? (
-          <img className="gift-card__img" src={gift.image_url} alt={gift.title} />
-        ) : (
-          <ImagePlaceholder id={gift.id} />
-        )}
+        <GiftImage gift={gift} />
         <div className="gift-card__body">
           {(gift.label || gift.brand) && (
             <p className="gift-card__eyebrow">
