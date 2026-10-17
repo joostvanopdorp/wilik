@@ -1,5 +1,5 @@
 -r requirements.txt
 
-numpy==2.5.3
+numpy==2.5.4
 pillow==12.3.0
-playwright==1.63.0
+playwright==1.64.0
