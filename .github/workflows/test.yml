@@ -1,0 +1,41 @@
+name: Test
+
+# Runs on every pull request (including Renovate's), so a broken update shows up
+# before it is merged and turned into a new latest image. Everything runs inside
+# the images the Dockerfiles build, so the checks use the same Python and Node
+# versions as production.
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Build image
+        run: docker build -t wilik-backend:test ./backend
+
+      - name: Run tests
+        run: docker run --rm --entrypoint python wilik-backend:test -m unittest -v test_claim_management test_scrape
+
+  frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Build the build stage
+        run: docker build --target build -t wilik-frontend-build:test ./frontend
+
+      - name: Lint
+        run: docker run --rm wilik-frontend-build:test npm run lint
+
+      - name: Build image
+        run: docker build -t wilik-frontend:test ./frontend
