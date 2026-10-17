@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import StarRating from './StarRating'
 import GiftForm from './GiftForm'
-import ImagePlaceholder from './ImagePlaceholder'
+import GiftImage from './GiftImage'
 import Modal from './Modal'
 import {
   PencilIcon,
@@ -355,11 +355,7 @@ function GiftCard({
           </button>
         </div>
       </Modal>
-      {gift.image_url ? (
-        <img className="gift-card__img" src={gift.image_url} alt={gift.title} />
-      ) : (
-        showImagePlaceholder && <ImagePlaceholder id={gift.id} />
-      )}
+      <GiftImage gift={gift} showPlaceholder={showImagePlaceholder} />
       <div className="gift-card__body">
         {(gift.label || gift.brand) && (
           <p className="gift-card__eyebrow">
