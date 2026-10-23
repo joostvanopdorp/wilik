@@ -19,7 +19,7 @@ Mako==1.4.3
 MarkupSafe==3.0.4
 requests==2.34.2
 soupsieve==3.0.3
-SQLAlchemy==2.1.4
+SQLAlchemy==2.1.5
 typing_extensions==4.16.0
 urllib3==2.8.0
 Werkzeug==3.1.9
