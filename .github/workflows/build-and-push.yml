@@ -8,6 +8,12 @@ permissions:
   contents: read
   packages: write
 
+# A newer push cancels the running build, so an older commit can never finish
+# last and overwrite :latest.
+concurrency:
+  group: build-and-push
+  cancel-in-progress: true
+
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
