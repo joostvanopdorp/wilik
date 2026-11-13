@@ -2,8 +2,10 @@ import StarRating from './StarRating'
 import GiftImage from './GiftImage'
 import { GiftIcon, LockIcon, UndoIcon, ExternalLinkIcon } from './Icons'
 import { formatPrice } from '../formatPrice'
+import { useI18n } from '../i18n'
 
 function PublicGiftCard({ gift, currency, decimalSeparator, showBackgroundPattern, onClaim, onUnclaim, onManageClaim }) {
+  const { t } = useI18n()
   const lastSpace = gift.title.lastIndexOf(' ')
   const titleHead = lastSpace === -1 ? '' : gift.title.slice(0, lastSpace + 1)
   const titleTail = lastSpace === -1 ? gift.title : gift.title.slice(lastSpace + 1)
@@ -23,39 +25,45 @@ function PublicGiftCard({ gift, currency, decimalSeparator, showBackgroundPatter
   let icon, visibleText, tooltip, clickable, handleClick
   if (isOwnClaim) {
     icon = <UndoIcon />
-    visibleText = 'Release this gift'
-    tooltip = 'Release this gift'
+    visibleText = t('Release this gift')
+    tooltip = t('Release this gift')
     clickable = true
     handleClick = () => onUnclaim(gift)
   } else if (gift.quantity === 1) {
     // quantity=1 behaves exactly as it always has -- same text, same tooltip, same click
     if (claimedCount > 0) {
       icon = <LockIcon />
-      visibleText = 'Gift claimed'
-      tooltip = 'Gift claimed — click to unclaim'
+      visibleText = t('Gift claimed')
+      tooltip = t('Gift claimed — click to unclaim')
       clickable = true
       handleClick = () => onUnclaim(gift)
     } else {
       icon = <GiftIcon />
-      visibleText = 'Get this gift'
-      tooltip = 'Get this gift'
+      visibleText = t('Get this gift')
+      tooltip = t('Get this gift')
       clickable = true
       handleClick = () => onClaim(gift)
     }
   } else if (fullyClaimed) {
     icon = <LockIcon />
-    visibleText = gift.quantity != null ? `Fully claimed (${claimedCount} of ${gift.quantity})` : 'Fully claimed'
+    visibleText =
+      gift.quantity != null
+        ? t('Fully claimed ({count} of {quantity})', { count: claimedCount, quantity: gift.quantity })
+        : t('Fully claimed')
     tooltip = visibleText
     clickable = false
     handleClick = undefined
   } else {
     icon = <GiftIcon />
     if (claimedCount === 0) {
-      visibleText = 'Get this gift'
+      visibleText = t('Get this gift')
     } else if (gift.quantity != null) {
-      visibleText = `Also get this gift (${claimedCount} of ${gift.quantity} claimed)`
+      visibleText = t('Also get this gift ({count} of {quantity} claimed)', {
+        count: claimedCount,
+        quantity: gift.quantity,
+      })
     } else {
-      visibleText = `Also get this gift (${claimedCount} claimed)`
+      visibleText = t('Also get this gift ({count} claimed)', { count: claimedCount })
     }
     tooltip = visibleText
     clickable = true
@@ -143,7 +151,7 @@ function PublicGiftCard({ gift, currency, decimalSeparator, showBackgroundPatter
             onManageClaim(gift)
           }}
         >
-          Already claimed this? Manage your claim
+          {t('Already claimed this? Manage your claim')}
         </button>
       )}
     </div>

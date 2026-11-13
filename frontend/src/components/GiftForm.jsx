@@ -1,10 +1,12 @@
 import { useState } from 'react'
 import StarRating from './StarRating'
 import { CURRENCY_OPTIONS } from '../formOptions'
+import { useI18n } from '../i18n'
 
 const API_BASE = '/api'
 
 function GiftForm({ initialValues, defaultCurrency, onSubmit, onCancel }) {
+  const { t } = useI18n()
   const [values, setValues] = useState({
     title: initialValues?.title ?? '',
     label: initialValues?.label ?? '',
@@ -41,7 +43,7 @@ function GiftForm({ initialValues, defaultCurrency, onSubmit, onCancel }) {
       .then((response) => response.json().then((data) => ({ ok: response.ok, data })))
       .then(({ ok, data }) => {
         if (!ok) {
-          setScrapeError(data.error || 'Could not fetch details for that URL')
+          setScrapeError(t(data.error || 'Could not fetch details for that URL'))
           return
         }
         setValues((current) => ({
@@ -52,7 +54,7 @@ function GiftForm({ initialValues, defaultCurrency, onSubmit, onCancel }) {
           price: data.price != null ? data.price : current.price,
         }))
       })
-      .catch(() => setScrapeError('Could not fetch details for that URL'))
+      .catch(() => setScrapeError(t('Could not fetch details for that URL')))
       .finally(() => setScraping(false))
   }
 
@@ -70,7 +72,7 @@ function GiftForm({ initialValues, defaultCurrency, onSubmit, onCancel }) {
   return (
     <form className="gift-form" onSubmit={handleSubmit}>
       <label>
-        URL
+        {t('URL')}
         <span className="inline-field">
           <input name="url" value={values.url} onChange={handleChange} placeholder="https://..." />
           <button
@@ -79,66 +81,66 @@ function GiftForm({ initialValues, defaultCurrency, onSubmit, onCancel }) {
             onClick={handleFetchDetails}
             disabled={!values.url || scraping}
           >
-            {scraping ? 'Fetching…' : 'Fetch details'}
+            {scraping ? t('Fetching…') : t('Fetch details')}
           </button>
         </span>
       </label>
       {scrapeError && <p className="form-error">{scrapeError}</p>}
       <label>
-        Image URL
+        {t('Image URL')}
         <input name="image_url" value={values.image_url} onChange={handleChange} placeholder="https://..." />
       </label>
       {values.image_url && values.image_url !== failedImageUrl && (
         <img
           src={values.image_url}
-          alt="Preview"
+          alt={t('Preview')}
           className="gift-form__image-preview"
           onError={() => setFailedImageUrl(values.image_url)}
         />
       )}
       <div className="gift-form__row">
         <label>
-          Label
-          <input name="label" value={values.label} onChange={handleChange} placeholder="e.g. Board game, Perfume, Book ..." />
+          {t('Label')}
+          <input name="label" value={values.label} onChange={handleChange} placeholder={t('e.g. Board game, Perfume, Book ...')} />
         </label>
         <label>
-          Brand, creator or seller
-          <input name="brand" value={values.brand} onChange={handleChange} placeholder="e.g. 999 Games, Chanel, George Orwell ..." />
+          {t('Brand, creator or seller')}
+          <input name="brand" value={values.brand} onChange={handleChange} placeholder={t('e.g. 999 Games, Chanel, George Orwell ...')} />
         </label>
       </div>
       <label>
         <span>
-          Title <span className="required">*</span>
+          {t('Title')} <span className="required">*</span>
         </span>
         <input
           name="title"
           value={values.title}
           onChange={handleChange}
-          placeholder="e.g. Rummikub, Bleu de Chanel, Animal Farm ..."
+          placeholder={t('e.g. Rummikub, Bleu de Chanel, Animal Farm ...')}
           required
         />
       </label>
       <label>
-        Product options (separate with semicolons)
+        {t('Product options (separate with semicolons)')}
         <input
           name="options"
           value={values.options}
           onChange={handleChange}
-          placeholder="e.g. Medium; 50ml; Black, blue or yellow"
+          placeholder={t('e.g. Medium; 50ml; Black, blue or yellow')}
         />
       </label>
       <label>
-        Description
+        {t('Description')}
         <textarea
           name="description"
           value={values.description}
           onChange={handleChange}
-          placeholder="Any extra details worth mentioning"
+          placeholder={t('Any extra details worth mentioning')}
         />
       </label>
       <div className="gift-form__row">
         <label>
-          Price
+          {t('Price')}
           <input
             name="price"
             type="number"
@@ -149,18 +151,18 @@ function GiftForm({ initialValues, defaultCurrency, onSubmit, onCancel }) {
           />
         </label>
         <label>
-          Currency
+          {t('Currency')}
           <select name="currency" value={values.currency} onChange={handleChange}>
-            <option value="__default__">Default ({defaultCurrency || 'no symbol'})</option>
+            <option value="__default__">{t('Default ({currency})', { currency: defaultCurrency || t('no symbol') })}</option>
             {CURRENCY_OPTIONS.map((option) => (
               <option key={option.value} value={option.value}>
-                {option.label}
+                {t(option.label)}
               </option>
             ))}
           </select>
         </label>
         <label>
-          Quantity
+          {t('Quantity')}
           <input
             name="quantity"
             type="number"
@@ -173,17 +175,17 @@ function GiftForm({ initialValues, defaultCurrency, onSubmit, onCancel }) {
       </div>
       <label className="checkbox-row">
         <input type="checkbox" checked={unlimited} onChange={(event) => setUnlimited(event.target.checked)} />
-        Unlimited (anyone can claim a copy, it never runs out)
+        {t('Unlimited (anyone can claim a copy, it never runs out)')}
       </label>
       <label>
-        Rating
+        {t('Rating')}
         <StarRating value={rating} onChange={setRating} />
       </label>
       <div className="gift-form__actions">
-        <button type="submit">Save</button>
+        <button type="submit">{t('Save')}</button>
         {onCancel && (
           <button type="button" onClick={onCancel}>
-            Cancel
+            {t('Cancel')}
           </button>
         )}
       </div>

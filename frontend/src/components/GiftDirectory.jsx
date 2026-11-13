@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
+import { useI18n } from '../i18n'
 
 const API_BASE = '/api'
 
 function GiftDirectory() {
+  const { t } = useI18n()
   const [visible, setVisible] = useState(false)
 
   useEffect(() => {
@@ -16,9 +18,9 @@ function GiftDirectory() {
 
   return (
     <div className="gift-directory">
-      <h3>Looking for someone's wishlist?</h3>
+      <h3>{t("Looking for someone's wishlist?")}</h3>
       <Link to="/directory" className="btn-primary">
-        Browse wishlists
+        {t('Browse wishlists')}
       </Link>
     </div>
   )

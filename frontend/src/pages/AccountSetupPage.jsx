@@ -2,10 +2,13 @@ import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import Logo from '../components/Logo'
 import { SpinnerIcon } from '../components/Icons'
+import { useI18n } from '../i18n'
+import { LoginPageLanguageMenu } from '../components/LanguageMenu'
 
 const API_BASE = '/api'
 
 function AccountSetupPage({ appName }) {
+  const { t } = useI18n()
   const { token } = useParams()
   const navigate = useNavigate()
   const [status, setStatus] = useState('loading') // 'loading' | 'invalid' | 'ready'
@@ -29,7 +32,7 @@ function AccountSetupPage({ appName }) {
     event.preventDefault()
     setError(null)
     if (newPassword !== confirmPassword) {
-      setError("New passwords don't match")
+      setError(t("New passwords don't match"))
       return
     }
     setBusy(true)
@@ -44,7 +47,7 @@ function AccountSetupPage({ appName }) {
     }).then((response) => {
       if (!response.ok) {
         setBusy(false)
-        response.json().then((data) => setError(data.error))
+        response.json().then((data) => setError(t(data.error)))
         return
       }
       navigate('/', { replace: true })
@@ -55,13 +58,14 @@ function AccountSetupPage({ appName }) {
 
   return (
     <div className="login-page">
+      <LoginPageLanguageMenu />
       {status === 'invalid' ? (
         <div className="gift-form login-form">
           <div className="login-form__brand">
             <Logo size={40} />
             <h1>{appName}</h1>
           </div>
-          <p className="login-form__hint">This setup link is invalid or has expired. Ask your admin for a new one.</p>
+          <p className="login-form__hint">{t('This setup link is invalid or has expired. Ask your admin for a new one.')}</p>
         </div>
       ) : (
         <form className="gift-form login-form" onSubmit={handleSubmit}>
@@ -69,13 +73,13 @@ function AccountSetupPage({ appName }) {
             <Logo size={40} />
             <h1>{appName}</h1>
           </div>
-          <p className="login-form__hint">Choose your username and set a password to finish setting up your account</p>
+          <p className="login-form__hint">{t('Choose your username and set a password to finish setting up your account')}</p>
           <label>
-            Username
+            {t('Username')}
             <input value={newUsername} onChange={(event) => setNewUsername(event.target.value)} required autoFocus />
           </label>
           <label>
-            New password
+            {t('New password')}
             <input
               type="password"
               value={newPassword}
@@ -85,7 +89,7 @@ function AccountSetupPage({ appName }) {
             />
           </label>
           <label>
-            Confirm new password
+            {t('Confirm new password')}
             <input
               type="password"
               value={confirmPassword}
@@ -98,10 +102,10 @@ function AccountSetupPage({ appName }) {
           <button type="submit" className="btn-primary" disabled={busy}>
             {busy ? (
               <>
-                <SpinnerIcon /> Saving…
+                <SpinnerIcon /> {t('Saving…')}
               </>
             ) : (
-              'Save and continue'
+              t('Save and continue')
             )}
           </button>
         </form>

@@ -3,11 +3,13 @@ import GiftCard from '../components/GiftCard'
 import GiftForm from '../components/GiftForm'
 import { PlusIcon, SparkleIcon, GripIcon, SpinnerIcon } from '../components/Icons'
 import { sortGifts } from '../sortGifts'
+import { useI18n } from '../i18n'
 
 const API_BASE = '/api'
 const API_URL = `${API_BASE}/items`
 
 function WishlistPage({ currentUser }) {
+  const { t } = useI18n()
   const [items, setItems] = useState([])
   const [isLoading, setIsLoading] = useState(true)
   const [isAdding, setIsAdding] = useState(false)
@@ -111,7 +113,7 @@ function WishlistPage({ currentUser }) {
     const target = items.find((item) => item.id === targetId)
     if (!dragged || !target) return
     if (dragged.rating !== target.rating) {
-      alert('Gifts can only be reordered within the same star rating.')
+      alert(t('Gifts can only be reordered within the same star rating.'))
       return
     }
 
@@ -169,10 +171,10 @@ function WishlistPage({ currentUser }) {
           onClick={() => setIsAdding((current) => !current)}
         >
           {isAdding ? (
-            'Cancel'
+            t('Cancel')
           ) : (
             <>
-              <PlusIcon width={14} height={14} strokeWidth={3} /> New item
+              <PlusIcon width={14} height={14} strokeWidth={3} /> {t('New item')}
             </>
           )}
         </button>
@@ -189,16 +191,16 @@ function WishlistPage({ currentUser }) {
           {!isAdding && isLoading && (
             <div className="empty-state">
               <SpinnerIcon width={32} height={32} />
-              <p>Loading your wishlist…</p>
+              <p>{t('Loading your wishlist…')}</p>
             </div>
           )}
           {!isAdding && !isLoading && activeItems.length === 0 && (
             <div className="empty-state">
               <SparkleIcon />
-              <h3>Your wishlist is empty</h3>
-              <p>Add your first gift idea to get started</p>
+              <h3>{t('Your wishlist is empty')}</h3>
+              <p>{t('Add your first gift idea to get started')}</p>
               <button className="btn-primary" type="button" onClick={() => setIsAdding(true)}>
-                <PlusIcon width={14} height={14} strokeWidth={3} /> New item
+                <PlusIcon width={14} height={14} strokeWidth={3} /> {t('New item')}
               </button>
             </div>
           )}

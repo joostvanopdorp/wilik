@@ -623,6 +623,36 @@
   right: 12px;
 }
 
+.language-modal {
+  width: min(360px, 100%);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.language-modal h3 {
+  margin: 0 32px 0 0;
+  color: var(--text-h);
+}
+
+.language-modal__options {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.language-modal__option {
+  justify-content: space-between;
+  width: 100%;
+  padding: 10px 14px;
+}
+
+.language-modal__option--active {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
 .claim-manager {
   width: min(440px, 100%);
   padding: 20px;
@@ -1080,6 +1110,7 @@ button:hover {
 }
 
 .login-page {
+  position: relative;
   min-height: 100svh;
   display: flex;
   flex-direction: column;
@@ -1087,6 +1118,12 @@ button:hover {
   justify-content: center;
   gap: 24px;
   padding: 24px;
+}
+
+.login-page__language {
+  position: absolute;
+  top: 16px;
+  right: 16px;
 }
 
 .login-form {
@@ -1383,9 +1420,27 @@ label.checkbox-row input[type='checkbox'] {
     display: flex;
   }
 
+  /* public pages have at most a couple of buttons and no menu toggle, so keep them inline */
+  .topbar__actions--static {
+    display: flex;
+    position: static;
+    flex-direction: row;
+    margin-top: 0;
+    padding: 0;
+    border: 0;
+    background: none;
+    box-shadow: none;
+  }
+
   .topbar__actions a,
   .topbar__actions button {
     width: 100%;
+  }
+
+  /* after the rule above, so it wins at equal specificity */
+  .topbar__actions--static a,
+  .topbar__actions--static button {
+    width: auto;
   }
 }
 

@@ -114,6 +114,13 @@ class AppSettings(db.Model):
     # fallback dark/light/auto for anyone who hasn't picked their own in Settings yet (stored
     # per-browser in localStorage, see colorScheme.js) -- "dark" matches the app's historical default
     default_color_scheme = db.Column(db.String(10), nullable=False, default="dark")
+    # fallback UI language for anyone who hasn't picked their own in Settings (stored per-browser
+    # in localStorage, see I18nProvider.jsx) -- "system" follows the browser's language
+    default_language = db.Column(db.String(10), nullable=False, default="system")
+    # shows the language button to visitors (public wishlists, directory, login and account
+    # setup pages), so they can override default_language; logged-in users also get their own
+    # opt-in toggle in Settings
+    public_language_button_enabled = db.Column(db.Boolean, nullable=False, default=False)
     # site-wide kill switch for claim management: even if a user has User.claim_management_enabled
     # set, the feature stays fully inert (backend blocks it, not just hidden in the UI) while this
     # is off -- see routes/items.py's claim_management_active(). Defaults off, matching the
@@ -130,6 +137,8 @@ class AppSettings(db.Model):
             "app_name": self.app_name,
             "public_directory_enabled": self.public_directory_enabled,
             "default_color_scheme": self.default_color_scheme,
+            "default_language": self.default_language,
+            "public_language_button_enabled": self.public_language_button_enabled,
             "claim_management_site_enabled": self.claim_management_site_enabled,
             "claim_delete_warning_skipped": self.claim_delete_warning_skipped,
         }
