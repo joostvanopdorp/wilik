@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import GiftCard from '../components/GiftCard'
 import { ArchiveIcon, SpinnerIcon } from '../components/Icons'
+import { useI18n } from '../i18n'
 
 const API_BASE = '/api'
 const API_URL = `${API_BASE}/items`
@@ -9,6 +10,7 @@ const API_URL = `${API_BASE}/items`
 const NOOP_DRAG_STATE = { draggedId: null, draggedRating: undefined, overId: null }
 
 function ReceivedPage({ currentUser }) {
+  const { t } = useI18n()
   const [items, setItems] = useState([])
   const [isLoading, setIsLoading] = useState(true)
   const [claimManagementSiteEnabled, setClaimManagementSiteEnabled] = useState(false)
@@ -77,23 +79,23 @@ function ReceivedPage({ currentUser }) {
   return (
     <div className="page">
       <Link className="page__back" to="/">
-        ← Back to wishlist
+        {t('← Back to wishlist')}
       </Link>
-      <h2>Received</h2>
-      <p className="page__hint">Items you've already got, kept off your active wishlist</p>
+      <h2>{t('Received')}</h2>
+      <p className="page__hint">{t("Items you've already got, kept off your active wishlist")}</p>
       <main>
         <div className="gift-grid">
           {isLoading && (
             <div className="empty-state">
               <SpinnerIcon width={32} height={32} />
-              <p>Loading…</p>
+              <p>{t('Loading…')}</p>
             </div>
           )}
           {!isLoading && receivedItems.length === 0 && (
             <div className="empty-state">
               <ArchiveIcon width={56} height={56} strokeWidth={1.4} />
-              <h3>Nothing here yet</h3>
-              <p>Mark a wishlist item as received to archive it</p>
+              <h3>{t('Nothing here yet')}</h3>
+              <p>{t('Mark a wishlist item as received to archive it')}</p>
             </div>
           )}
           {receivedItems.map((item) => (

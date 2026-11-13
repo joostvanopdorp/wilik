@@ -1,12 +1,14 @@
 import { useState } from 'react'
 import Logo from './Logo'
 import { SpinnerIcon } from './Icons'
+import { useI18n } from '../i18n'
 
 const API_BASE = '/api'
 
 // only ever shown for an account the admin explicitly opted into the passwordless flow
 // (allow_passwordless_setup) -- everyone else completes setup via their one-time /setup/:token link
 function FirstLoginSetup({ appName, currentUser, onUpdate }) {
+  const { t } = useI18n()
   const [newUsername, setNewUsername] = useState(currentUser.username)
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
@@ -17,7 +19,7 @@ function FirstLoginSetup({ appName, currentUser, onUpdate }) {
     event.preventDefault()
     setError(null)
     if (newPassword !== confirmPassword) {
-      setError("New passwords don't match")
+      setError(t("New passwords don't match"))
       return
     }
     setBusy(true)
@@ -51,13 +53,13 @@ function FirstLoginSetup({ appName, currentUser, onUpdate }) {
           <Logo size={40} />
           <h1>{appName}</h1>
         </div>
-        <p className="login-form__hint">Choose your username and set a password to finish setting up your account</p>
+        <p className="login-form__hint">{t('Choose your username and set a password to finish setting up your account')}</p>
         <label>
-          Username
+          {t('Username')}
           <input value={newUsername} onChange={(event) => setNewUsername(event.target.value)} required autoFocus />
         </label>
         <label>
-          New password
+          {t('New password')}
           <input
             type="password"
             value={newPassword}
@@ -67,7 +69,7 @@ function FirstLoginSetup({ appName, currentUser, onUpdate }) {
           />
         </label>
         <label>
-          Confirm new password
+          {t('Confirm new password')}
           <input
             type="password"
             value={confirmPassword}
@@ -80,14 +82,14 @@ function FirstLoginSetup({ appName, currentUser, onUpdate }) {
         <button type="submit" className="btn-primary" disabled={busy}>
           {busy ? (
             <>
-              <SpinnerIcon /> Saving…
+              <SpinnerIcon /> {t('Saving…')}
             </>
           ) : (
-            'Save and continue'
+            t('Save and continue')
           )}
         </button>
         <button type="button" className="login-form__back" onClick={handleLogout} disabled={busy}>
-          Not you? Log out
+          {t('Not you? Log out')}
         </button>
       </form>
     </div>

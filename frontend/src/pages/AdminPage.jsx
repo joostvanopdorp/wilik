@@ -4,6 +4,7 @@ import { PencilIcon, TrashIcon, SpinnerIcon, CheckIcon, CloseIcon, InfoIcon } fr
 import Modal from '../components/Modal'
 import { THEME_PRESETS } from '../themePresets'
 import { CURRENCY_OPTIONS, DECIMAL_SEPARATOR_OPTIONS } from '../formOptions'
+import { useI18n } from '../i18n'
 
 const API_BASE = '/api'
 
@@ -17,6 +18,7 @@ function shortVersion(version) {
 }
 
 function AdminPage({ currentUser, appName, onAppNameChange }) {
+  const { t } = useI18n()
   const [users, setUsers] = useState([])
   const [appNameInput, setAppNameInput] = useState(appName)
   const [appNameError, setAppNameError] = useState(null)
@@ -205,7 +207,9 @@ function AdminPage({ currentUser, appName, onAppNameChange }) {
         setCreateNotice(
           newUser.setup_token
             ? null
-            : `${newUser.username} can log in immediately with just their username. They'll be asked to set a password.`
+            : t('{username} can log in immediately with just their username. They’ll be asked to set a password.', {
+                username: newUser.username,
+              })
         )
         setUsername('')
         setIsAdmin(false)
@@ -215,14 +219,14 @@ function AdminPage({ currentUser, appName, onAppNameChange }) {
   }
 
   function handleDeleteUser(user) {
-    if (!confirm(`Delete ${user.username}? Their wishlist will be deleted too.`)) return
+    if (!confirm(t('Delete {username}? Their wishlist will be deleted too.', { username: user.username }))) return
     fetch(`${API_BASE}/users/${user.id}`, { method: 'DELETE', credentials: 'include' }).then(() => {
       setUsers((current) => current.filter((u) => u.id !== user.id))
     })
   }
 
   function handleResetPassword(user) {
-    if (!confirm(`Reset ${user.username}'s password? They'll set a new one next time they log in.`)) return
+    if (!confirm(t("Reset {username}'s password? They'll set a new one next time they log in.", { username: user.username }))) return
     setResetNotice(null)
     setResetSetupLink(null)
     fetch(`${API_BASE}/users/${user.id}/reset-password`, {
@@ -242,7 +246,9 @@ function AdminPage({ currentUser, appName, onAppNameChange }) {
         setResetNotice(
           updatedUser.setup_token
             ? null
-            : `${user.username} can log in immediately with just their username. They'll be asked to set a new password.`
+            : t('{username} can log in immediately with just their username. They’ll be asked to set a new password.', {
+                username: user.username,
+              })
         )
       })
     })
@@ -309,7 +315,7 @@ function AdminPage({ currentUser, appName, onAppNameChange }) {
   }
 
   function closeEditPanel() {
-    if (hasUnsavedEdits() && !confirm('Discard unsaved changes?')) return
+    if (hasUnsavedEdits() && !confirm(t('Discard unsaved changes?'))) return
     editInitialRef.current = null
     setEditingUserId(null)
   }
@@ -319,7 +325,7 @@ function AdminPage({ currentUser, appName, onAppNameChange }) {
       closeEditPanel()
       return
     }
-    if (hasUnsavedEdits() && !confirm('Discard unsaved changes?')) return
+    if (hasUnsavedEdits() && !confirm(t('Discard unsaved changes?'))) return
     startEditUser(user)
   }
 
@@ -422,11 +428,11 @@ function AdminPage({ currentUser, appName, onAppNameChange }) {
   return (
     <div className="page">
       <Link className="page__back" to="/">
-        ← Back to wishlist
+        {t('← Back to wishlist')}
       </Link>
-      <h2>Admin panel</h2>
+      <h2>{t('Admin panel')}</h2>
 
-      <h3>User management</h3>
+      <h3>{t('User management')}</h3>
       <div className="card">
         <ul className="user-admin__list">
           {users.map((user) => (
@@ -434,15 +440,15 @@ function AdminPage({ currentUser, appName, onAppNameChange }) {
               <div className="user-admin__row">
                 <span>
                   {user.username}
-                  {user.is_admin && <span className="not-recommended">admin</span>}
-                  {user.must_change_password ? ' (setup pending)' : ''}
+                  {user.is_admin && <span className="not-recommended">{t('admin')}</span>}
+                  {user.must_change_password ? ` (${t('setup pending')})` : ''}
                 </span>
                 <span className="user-admin__row-actions">
                   <button
                     type="button"
                     className="icon-button"
-                    aria-label="Edit user"
-                    title="Edit user"
+                    aria-label={t('Edit user')}
+                    title={t('Edit user')}
                     onClick={() => requestEditUser(user)}
                   >
                     <PencilIcon />
@@ -451,8 +457,8 @@ function AdminPage({ currentUser, appName, onAppNameChange }) {
                     <button
                       type="button"
                       className="icon-button"
-                      aria-label="Delete user"
-                      title="Delete user"
+                      aria-label={t('Delete user')}
+                      title={t('Delete user')}
                       onClick={() => handleDeleteUser(user)}
                     >
                       <TrashIcon />
@@ -476,14 +482,14 @@ function AdminPage({ currentUser, appName, onAppNameChange }) {
         {editingUser && (
           <>
             <h3 id="user-edit-modal-title" className="user-edit-modal__title">
-              Manage user: {editingUser.username}
+              {t('Manage user: {username}', { username: editingUser.username })}
             </h3>
             <div className="user-admin__edit-panel">
-              <h3 className="user-edit-modal__group">Account settings</h3>
+              <h3 className="user-edit-modal__group">{t('Account settings')}</h3>
 
               {editingUser.id !== currentUser.id && (
                 <div className="gift-form">
-                  <h3 className="gift-form__badge">Reset password</h3>
+                  <h3 className="gift-form__badge">{t('Reset password')}</h3>
                   <label className="checkbox-row">
                     <input
                       type="checkbox"
@@ -491,8 +497,8 @@ function AdminPage({ currentUser, appName, onAppNameChange }) {
                       onChange={(event) => setEditResetPasswordless(event.target.checked)}
                     />
                     <span>
-                      Reset password without a setup link, allow first login with just a username
-                      <span className="not-recommended">not recommended</span>
+                      {t('Reset password without a setup link, allow first login with just a username')}
+                      <span className="not-recommended">{t('not recommended')}</span>
                     </span>
                   </label>
                   <div className="gift-form__actions">
@@ -501,7 +507,7 @@ function AdminPage({ currentUser, appName, onAppNameChange }) {
                       className="btn-primary"
                       onClick={() => handleResetPassword(editingUser)}
                     >
-                      Reset password
+                      {t('Reset password')}
                     </button>
                   </div>
                   {resetSetupLink && (
@@ -509,12 +515,12 @@ function AdminPage({ currentUser, appName, onAppNameChange }) {
                       <button
                         type="button"
                         className="icon-button form-success__dismiss"
-                        aria-label="Dismiss"
+                        aria-label={t('Dismiss')}
                         onClick={() => setResetSetupLink(null)}
                       >
                         <CloseIcon />
                       </button>
-                      <p>{resetSetupLink.username} can't log in until they use this one-time setup link:</p>
+                      <p>{t("{username} can't log in until they use this one-time setup link:", { username: resetSetupLink.username })}</p>
                       <div className="inline-field">
                         <input
                           className="share-link__input"
@@ -527,7 +533,7 @@ function AdminPage({ currentUser, appName, onAppNameChange }) {
                           className="btn-primary"
                           onClick={() => handleCopyLink(resetSetupLink.url, setResetLinkCopied)}
                         >
-                          {resetLinkCopied ? 'Copied!' : 'Copy'}
+                          {resetLinkCopied ? t('Copied!') : t('Copy')}
                         </button>
                       </div>
                     </div>
@@ -537,7 +543,7 @@ function AdminPage({ currentUser, appName, onAppNameChange }) {
                       <button
                         type="button"
                         className="icon-button form-success__dismiss"
-                        aria-label="Dismiss"
+                        aria-label={t('Dismiss')}
                         onClick={() => setResetNotice(null)}
                       >
                         <CloseIcon />
@@ -549,9 +555,9 @@ function AdminPage({ currentUser, appName, onAppNameChange }) {
               )}
 
               <form className="gift-form" onSubmit={(event) => handleUsernameSubmit(event, editingUser)}>
-                <h3 className="gift-form__badge">Change username</h3>
+                <h3 className="gift-form__badge">{t('Change username')}</h3>
                 <label>
-                  Username
+                  {t('Username')}
                   <input
                     ref={editUsernameInputRef}
                     value={editUsername}
@@ -561,13 +567,13 @@ function AdminPage({ currentUser, appName, onAppNameChange }) {
                 </label>
                 {sectionStatus.username?.error && <p className="form-error">{sectionStatus.username.error}</p>}
                 <div className="gift-form__actions">
-                  <button type="submit">Save</button>
+                  <button type="submit">{t('Save')}</button>
                   {sectionStatus.username?.saved && (
                     <p className="form-success">
                       <span className="form-success__icon">
                         <CheckIcon />
                       </span>
-                      Saved
+                      {t('Saved')}
                     </p>
                   )}
                 </div>
@@ -575,58 +581,58 @@ function AdminPage({ currentUser, appName, onAppNameChange }) {
 
               {editingUser.id !== currentUser.id && (
                 <form className="gift-form" onSubmit={(event) => handleAdminSubmit(event, editingUser)}>
-                  <h3 className="gift-form__badge">Admin access</h3>
+                  <h3 className="gift-form__badge">{t('Admin access')}</h3>
                   <label className="checkbox-row">
                     <input
                       type="checkbox"
                       checked={editIsAdmin}
                       onChange={(event) => setEditIsAdmin(event.target.checked)}
                     />
-                    This user has admin access
+                    {t('This user has admin access')}
                   </label>
                   {sectionStatus.admin?.error && <p className="form-error">{sectionStatus.admin.error}</p>}
                   <div className="gift-form__actions">
-                    <button type="submit">Save</button>
+                    <button type="submit">{t('Save')}</button>
                     {sectionStatus.admin?.saved && (
                       <p className="form-success">
                         <span className="form-success__icon">
                           <CheckIcon />
                         </span>
-                        Saved
+                        {t('Saved')}
                       </p>
                     )}
                   </div>
                 </form>
               )}
 
-              <h3 className="user-edit-modal__group">Wishlist settings</h3>
+              <h3 className="user-edit-modal__group">{t('Wishlist settings')}</h3>
 
               <form className="gift-form" onSubmit={(event) => handleGeneralSubmit(event, editingUser)}>
-                <h3 className="gift-form__badge">General</h3>
+                <h3 className="gift-form__badge">{t('General')}</h3>
                 <label>
-                  List name
+                  {t('List name')}
                   <input value={editListName} onChange={(event) => setEditListName(event.target.value)} required />
                 </label>
                 <div className="gift-form__row">
                   <label>
-                    Currency
+                    {t('Currency')}
                     <select value={editCurrency} onChange={(event) => setEditCurrency(event.target.value)}>
                       {CURRENCY_OPTIONS.map((option) => (
                         <option key={option.value} value={option.value}>
-                          {option.label}
+                          {t(option.label)}
                         </option>
                       ))}
                     </select>
                   </label>
                   <label>
-                    Decimals
+                    {t('Decimals')}
                     <select
                       value={editDecimalSeparator}
                       onChange={(event) => setEditDecimalSeparator(event.target.value)}
                     >
                       {DECIMAL_SEPARATOR_OPTIONS.map((option) => (
                         <option key={option.value} value={option.value}>
-                          {option.label}
+                          {t(option.label)}
                         </option>
                       ))}
                     </select>
@@ -638,26 +644,26 @@ function AdminPage({ currentUser, appName, onAppNameChange }) {
                     checked={editShowInDirectory}
                     onChange={(event) => setEditShowInDirectory(event.target.checked)}
                   />
-                  List this wishlist in the browsable directory
+                  {t('List this wishlist in the browsable directory')}
                 </label>
                 {sectionStatus.general?.error && <p className="form-error">{sectionStatus.general.error}</p>}
                 <div className="gift-form__actions">
-                  <button type="submit">Save</button>
+                  <button type="submit">{t('Save')}</button>
                   {sectionStatus.general?.saved && (
                     <p className="form-success">
                       <span className="form-success__icon">
                         <CheckIcon />
                       </span>
-                      Saved
+                      {t('Saved')}
                     </p>
                   )}
                 </div>
               </form>
 
               <form className="gift-form" onSubmit={(event) => handleAppearanceSubmit(event, editingUser)}>
-                <h3 className="gift-form__badge">Appearance</h3>
+                <h3 className="gift-form__badge">{t('Appearance')}</h3>
                 <label>
-                  Theme color
+                  {t('Theme color')}
                   <span className="theme-swatches">
                     {THEME_PRESETS.map((preset) => (
                       <button
@@ -667,8 +673,8 @@ function AdminPage({ currentUser, appName, onAppNameChange }) {
                           preset.value === editThemeColor ? 'theme-swatch theme-swatch--selected' : 'theme-swatch'
                         }
                         style={{ backgroundColor: preset.swatchColor }}
-                        title={preset.name}
-                        aria-label={preset.name}
+                        title={t(preset.name)}
+                        aria-label={t(preset.name)}
                         onClick={() => setEditThemeColor(preset.value)}
                       />
                     ))}
@@ -680,7 +686,7 @@ function AdminPage({ currentUser, appName, onAppNameChange }) {
                     checked={editShowImagePlaceholder}
                     onChange={(event) => setEditShowImagePlaceholder(event.target.checked)}
                   />
-                  Show a placeholder image for items without a photo
+                  {t('Show a placeholder image for items without a photo')}
                 </label>
                 <label className="checkbox-row">
                   <input
@@ -688,27 +694,27 @@ function AdminPage({ currentUser, appName, onAppNameChange }) {
                     checked={editShowBackgroundPattern}
                     onChange={(event) => setEditShowBackgroundPattern(event.target.checked)}
                   />
-                  Show a subtle background pattern on gift cards
+                  {t('Show a subtle background pattern on gift cards')}
                 </label>
                 {sectionStatus.appearance?.error && <p className="form-error">{sectionStatus.appearance.error}</p>}
                 <div className="gift-form__actions">
-                  <button type="submit">Save</button>
+                  <button type="submit">{t('Save')}</button>
                   {sectionStatus.appearance?.saved && (
                     <p className="form-success">
                       <span className="form-success__icon">
                         <CheckIcon />
                       </span>
-                      Saved
+                      {t('Saved')}
                     </p>
                   )}
                 </div>
               </form>
 
               <form className="gift-form" onSubmit={(event) => handleGuestSubmit(event, editingUser)}>
-                <h3 className="gift-form__badge">Guest sorting &amp; filtering</h3>
+                <h3 className="gift-form__badge">{t('Guest sorting & filtering')}</h3>
                 <p className="info-block">
                   <InfoIcon />
-                  Lets guests browsing this user's list narrow it down themselves. This is handy for longer lists.
+                  {t("Lets guests browsing this user's list narrow it down themselves. This is handy for longer lists.")}
                 </p>
                 <label className="checkbox-row">
                   <input
@@ -716,7 +722,7 @@ function AdminPage({ currentUser, appName, onAppNameChange }) {
                     checked={editGuestSortByPrice}
                     onChange={(event) => setEditGuestSortByPrice(event.target.checked)}
                   />
-                  Let guests also sort by price
+                  {t('Let guests also sort by price')}
                 </label>
                 <label className="checkbox-row">
                   <input
@@ -724,7 +730,7 @@ function AdminPage({ currentUser, appName, onAppNameChange }) {
                     checked={editGuestFilterByLabel}
                     onChange={(event) => setEditGuestFilterByLabel(event.target.checked)}
                   />
-                  Let guests filter by label
+                  {t('Let guests filter by label')}
                 </label>
                 <label className="checkbox-row">
                   <input
@@ -732,17 +738,17 @@ function AdminPage({ currentUser, appName, onAppNameChange }) {
                     checked={editGuestFilterByBrand}
                     onChange={(event) => setEditGuestFilterByBrand(event.target.checked)}
                   />
-                  Let guests filter by brand
+                  {t('Let guests filter by brand')}
                 </label>
                 {sectionStatus.guest?.error && <p className="form-error">{sectionStatus.guest.error}</p>}
                 <div className="gift-form__actions">
-                  <button type="submit">Save</button>
+                  <button type="submit">{t('Save')}</button>
                   {sectionStatus.guest?.saved && (
                     <p className="form-success">
                       <span className="form-success__icon">
                         <CheckIcon />
                       </span>
-                      Saved
+                      {t('Saved')}
                     </p>
                   )}
                 </div>
@@ -750,12 +756,11 @@ function AdminPage({ currentUser, appName, onAppNameChange }) {
 
               {claimManagementSiteEnabled && (
                 <form className="gift-form" onSubmit={(event) => handleClaimSubmit(event, editingUser)}>
-                  <h3 className="gift-form__badge">Claim management</h3>
+                  <h3 className="gift-form__badge">{t('Claim management')}</h3>
                   <p className="info-block">
                     <InfoIcon />
                     <span>
-                      <strong>Caution!</strong> Claims normally stay hidden and anonymous to preserve the surprise.
-                      This lets this user deliberately reveal or reset them.
+                      <strong>{t('Caution!')}</strong> {t('Claims normally stay hidden and anonymous to preserve the surprise. This lets this user deliberately reveal or reset them.')}
                     </span>
                   </p>
                   <label className="checkbox-row">
@@ -764,7 +769,7 @@ function AdminPage({ currentUser, appName, onAppNameChange }) {
                       checked={editClaimManagementEnabled}
                       onChange={(event) => setEditClaimManagementEnabled(event.target.checked)}
                     />
-                    Let this user reveal and manage claims on their wishlist
+                    {t('Let this user reveal and manage claims on their wishlist')}
                   </label>
                   {editClaimManagementEnabled && (
                     <label className="checkbox-row">
@@ -774,20 +779,20 @@ function AdminPage({ currentUser, appName, onAppNameChange }) {
                         onChange={(event) => setEditLockIconClaimedOnly(event.target.checked)}
                       />
                       <span>
-                        Only show the lock icon on already-claimed items
-                        <span className="not-recommended">not recommended</span>
+                        {t('Only show the lock icon on already-claimed items')}
+                        <span className="not-recommended">{t('not recommended')}</span>
                       </span>
                     </label>
                   )}
                   {sectionStatus.claim?.error && <p className="form-error">{sectionStatus.claim.error}</p>}
                   <div className="gift-form__actions">
-                    <button type="submit">Save</button>
+                    <button type="submit">{t('Save')}</button>
                     {sectionStatus.claim?.saved && (
                       <p className="form-success">
                         <span className="form-success__icon">
                           <CheckIcon />
                         </span>
-                        Saved
+                        {t('Saved')}
                       </p>
                     )}
                   </div>
@@ -798,15 +803,15 @@ function AdminPage({ currentUser, appName, onAppNameChange }) {
         )}
       </Modal>
 
-      <h3>Add new user</h3>
+      <h3>{t('Add new user')}</h3>
       <form className="gift-form" onSubmit={handleCreateUser}>
         <label>
-          Username
+          {t('Username')}
           <input value={username} onChange={(event) => setUsername(event.target.value)} required />
         </label>
         <label className="checkbox-row">
           <input type="checkbox" checked={isAdmin} onChange={(event) => setIsAdmin(event.target.checked)} />
-          Make this user an admin
+          {t('Make this user an admin')}
         </label>
         <label className="checkbox-row">
           <input
@@ -815,8 +820,8 @@ function AdminPage({ currentUser, appName, onAppNameChange }) {
             onChange={(event) => setPasswordless(event.target.checked)}
           />
           <span>
-            Allow first login with just a username, no setup link
-            <span className="not-recommended">not recommended</span>
+            {t('Allow first login with just a username, no setup link')}
+            <span className="not-recommended">{t('not recommended')}</span>
           </span>
         </label>
         {userError && <p className="form-error">{userError}</p>}
@@ -825,12 +830,12 @@ function AdminPage({ currentUser, appName, onAppNameChange }) {
             <button
               type="button"
               className="icon-button form-success__dismiss"
-              aria-label="Dismiss"
+              aria-label={t('Dismiss')}
               onClick={() => setCreateSetupLink(null)}
             >
               <CloseIcon />
             </button>
-            <p>{createSetupLink.username} can't log in yet. Send them this one-time setup link:</p>
+            <p>{t("{username} can't log in yet. Send them this one-time setup link:", { username: createSetupLink.username })}</p>
             <div className="inline-field">
               <input
                 className="share-link__input"
@@ -843,7 +848,7 @@ function AdminPage({ currentUser, appName, onAppNameChange }) {
                 className="btn-primary"
                 onClick={() => handleCopyLink(createSetupLink.url, setCreateLinkCopied)}
               >
-                {createLinkCopied ? 'Copied!' : 'Copy'}
+                {createLinkCopied ? t('Copied!') : t('Copy')}
               </button>
             </div>
           </div>
@@ -853,7 +858,7 @@ function AdminPage({ currentUser, appName, onAppNameChange }) {
             <button
               type="button"
               className="icon-button form-success__dismiss"
-              aria-label="Dismiss"
+              aria-label={t('Dismiss')}
               onClick={() => setCreateNotice(null)}
             >
               <CloseIcon />
@@ -865,16 +870,16 @@ function AdminPage({ currentUser, appName, onAppNameChange }) {
           <button type="submit" disabled={creatingUser}>
             {creatingUser ? (
               <>
-                <SpinnerIcon /> Adding…
+                <SpinnerIcon /> {t('Adding…')}
               </>
             ) : (
-              'Add user'
+              t('Add user')
             )}
           </button>
         </div>
       </form>
 
-      <h3>Gift directory</h3>
+      <h3>{t('Gift directory')}</h3>
       <form className="gift-form" onSubmit={handleDirectorySubmit}>
         <label className="checkbox-row">
           <input
@@ -882,23 +887,23 @@ function AdminPage({ currentUser, appName, onAppNameChange }) {
             checked={publicDirectoryEnabled}
             onChange={(event) => setPublicDirectoryEnabled(event.target.checked)}
           />
-          Show a directory of public wishlists on the login page
+          {t('Show a directory of public wishlists on the login page')}
         </label>
         {directoryError && <p className="form-error">{directoryError}</p>}
         <div className="gift-form__actions">
-          <button type="submit">Save</button>
+          <button type="submit">{t('Save')}</button>
           {directorySaved && (
             <p className="form-success">
               <span className="form-success__icon">
                 <CheckIcon />
               </span>
-              Saved
+              {t('Saved')}
             </p>
           )}
         </div>
       </form>
 
-      <h3>Claim management</h3>
+      <h3>{t('Claim management')}</h3>
       <form className="gift-form" onSubmit={handleClaimManagementSiteSubmit}>
         <label className="checkbox-row">
           <input
@@ -906,7 +911,7 @@ function AdminPage({ currentUser, appName, onAppNameChange }) {
             checked={claimManagementSiteEnabled}
             onChange={(event) => setClaimManagementSiteEnabled(event.target.checked)}
           />
-          Allow wishlist owners to opt into revealing and resetting claims on their own list
+          {t('Allow wishlist owners to opt into revealing and resetting claims on their own list')}
         </label>
         <label className="checkbox-row">
           <input
@@ -915,68 +920,71 @@ function AdminPage({ currentUser, appName, onAppNameChange }) {
             onChange={(event) => setClaimDeleteWarningSkipped(event.target.checked)}
           />
           <span>
-            Skip the warning when deleting an already-claimed item
-            <span className="not-recommended">not recommended</span>
+            {t('Skip the warning when deleting an already-claimed item')}
+            <span className="not-recommended">{t('not recommended')}</span>
           </span>
         </label>
         {claimManagementSiteError && <p className="form-error">{claimManagementSiteError}</p>}
         <div className="gift-form__actions">
-          <button type="submit">Save</button>
+          <button type="submit">{t('Save')}</button>
           {claimManagementSiteSaved && (
             <p className="form-success">
               <span className="form-success__icon">
                 <CheckIcon />
               </span>
-              Saved
+              {t('Saved')}
             </p>
           )}
         </div>
       </form>
 
-      <h3>App name</h3>
+      <h3>{t('App name')}</h3>
       <form className="gift-form" onSubmit={handleAppNameSubmit}>
         <input value={appNameInput} onChange={(event) => setAppNameInput(event.target.value)} required />
         {appNameError && <p className="form-error">{appNameError}</p>}
         <div className="gift-form__actions">
-          <button type="submit">Change app name</button>
+          <button type="submit">{t('Change app name')}</button>
           {appNameSaved && (
             <p className="form-success">
               <span className="form-success__icon">
                 <CheckIcon />
               </span>
-              Saved
+              {t('Saved')}
             </p>
           )}
         </div>
       </form>
 
-      <h3>Default theme</h3>
+      <h3>{t('Default theme')}</h3>
       <form className="gift-form" onSubmit={handleDefaultColorSchemeSubmit}>
         <p className="info-block" style={{ marginTop: 0, marginBottom: 4 }}>
           <InfoIcon />
-          Default look for anyone without their own preference set, including wishlist visitors.
+          {t('Default look for anyone without their own preference set, including wishlist visitors.')}
         </p>
         <select value={defaultColorScheme} onChange={(event) => setDefaultColorScheme(event.target.value)}>
-          <option value="dark">Dark</option>
-          <option value="light">Light</option>
-          <option value="auto">Match system</option>
+          <option value="dark">{t('Dark')}</option>
+          <option value="light">{t('Light')}</option>
+          <option value="auto">{t('Match system')}</option>
         </select>
         {defaultColorSchemeError && <p className="form-error">{defaultColorSchemeError}</p>}
         <div className="gift-form__actions">
-          <button type="submit">Save</button>
+          <button type="submit">{t('Save')}</button>
           {defaultColorSchemeSaved && (
             <p className="form-success">
               <span className="form-success__icon">
                 <CheckIcon />
               </span>
-              Saved
+              {t('Saved')}
             </p>
           )}
         </div>
       </form>
 
       <p className="admin-version">
-        Version: backend {shortVersion(backendVersion)} · frontend {shortVersion(FRONTEND_VERSION)}
+        {t('Version: backend {backend} · frontend {frontend}', {
+          backend: shortVersion(backendVersion),
+          frontend: shortVersion(FRONTEND_VERSION),
+        })}
       </p>
     </div>
   )

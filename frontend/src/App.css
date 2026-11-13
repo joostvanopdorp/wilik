@@ -92,6 +92,43 @@
   color: var(--text-h);
 }
 
+.language-select select {
+  box-sizing: border-box;
+  min-height: 34px;
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--code-bg);
+  color: var(--text-h);
+  font: inherit;
+  font-size: 14px;
+}
+
+.language-select select:hover,
+.language-select select:focus-visible {
+  border-color: var(--accent);
+}
+
+.topbar__actions .language-select {
+  width: auto;
+}
+
+.topbar__actions .language-select select {
+  cursor: pointer;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 .topbar__actions a:hover,
 .topbar__actions button:hover {
   border-color: var(--accent);
@@ -1384,7 +1421,12 @@ label.checkbox-row input[type='checkbox'] {
   }
 
   .topbar__actions a,
-  .topbar__actions button {
+  .topbar__actions button,
+  .topbar__actions .language-select {
+    width: 100%;
+  }
+
+  .topbar__actions .language-select select {
     width: 100%;
   }
 }

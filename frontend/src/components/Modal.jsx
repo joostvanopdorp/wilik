@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { CloseIcon } from './Icons'
+import { useI18n } from '../i18n'
 
 const FOCUSABLE_SELECTOR =
   'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
@@ -18,6 +19,7 @@ function Modal({
   backdropClassName = '',
   children,
 }) {
+  const { t } = useI18n()
   const dialogRef = useRef(null)
   // kept in sync every render so the Escape handler below always calls the latest
   // onClose without needing it in the effect's deps (which would tear down and
@@ -81,8 +83,8 @@ function Modal({
         <button
           type="button"
           className="icon-button modal__close"
-          aria-label="Close"
-          title="Close"
+          aria-label={t('Close')}
+          title={t('Close')}
           onClick={onClose}
           disabled={closeDisabled}
         >

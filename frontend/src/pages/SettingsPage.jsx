@@ -4,10 +4,13 @@ import { THEME_PRESETS } from '../themePresets'
 import { getColorScheme, setColorScheme } from '../colorScheme'
 import { CURRENCY_OPTIONS, DECIMAL_SEPARATOR_OPTIONS } from '../formOptions'
 import { CheckIcon, InfoIcon } from '../components/Icons'
+import LanguageSelect from '../components/LanguageSelect'
+import { useI18n } from '../i18n'
 
 const API_BASE = '/api'
 
 function SettingsPage({ currentUser, onUpdate }) {
+  const { t } = useI18n()
   const [shareCopied, setShareCopied] = useState(false)
   const [shareRegenerating, setShareRegenerating] = useState(false)
   const [showInDirectory, setShowInDirectory] = useState(currentUser.show_in_directory)
@@ -42,7 +45,7 @@ function SettingsPage({ currentUser, onUpdate }) {
   }
 
   function handleRegenerateShareUrl() {
-    if (!confirm("Generate a new link? Your old share link will stop working.")) return
+    if (!confirm(t('Generate a new link? Your old share link will stop working.'))) return
     setShareRegenerating(true)
     fetch(`${API_BASE}/account/share-token`, {
       method: 'POST',
@@ -124,7 +127,7 @@ function SettingsPage({ currentUser, onUpdate }) {
     setPasswordError(null)
     setPasswordSaved(false)
     if (newPassword !== confirmPassword) {
-      setPasswordError("New passwords don't match")
+      setPasswordError(t("New passwords don't match"))
       return
     }
     fetch(`${API_BASE}/account/password`, {
@@ -250,58 +253,58 @@ function SettingsPage({ currentUser, onUpdate }) {
   return (
     <div className="page">
       <Link className="page__back" to="/">
-        ← Back to wishlist
+        {t('← Back to wishlist')}
       </Link>
-      <h2>Settings</h2>
+      <h2>{t('Settings')}</h2>
 
-      <h3>Share your wishlist</h3>
+      <h3>{t('Share your wishlist')}</h3>
       <div className="card">
         <p className="info-block" style={{ marginTop: 0, marginBottom: 10 }}>
           <InfoIcon />
-          Anyone with this link can view your list and claim items.
+          {t('Anyone with this link can view your list and claim items.')}
         </p>
         <div className="inline-field">
           <input className="share-link__input" value={shareUrl} readOnly onFocus={(event) => event.target.select()} />
           <button type="button" className="btn-primary" onClick={handleCopyShareUrl}>
-            {shareCopied ? 'Copied!' : 'Copy'}
+            {shareCopied ? t('Copied!') : t('Copy')}
           </button>
         </div>
         <div className="gift-form__actions">
           <button type="button" className="btn-primary" onClick={handleRegenerateShareUrl} disabled={shareRegenerating}>
-            Generate new link
+            {t('Generate new link')}
           </button>
         </div>
         <label className="checkbox-row" style={{ marginTop: 12 }}>
           <input type="checkbox" checked={showInDirectory} onChange={handleShowInDirectoryChange} />
-          List my wishlist in the browsable directory
+          {t('List my wishlist in the browsable directory')}
         </label>
       </div>
 
-      <h3>Wishlist settings</h3>
+      <h3>{t('Wishlist settings')}</h3>
 
       <form className="gift-form" onSubmit={handleGeneralSubmit}>
-        <h3 className="gift-form__badge">General</h3>
+        <h3 className="gift-form__badge">{t('General')}</h3>
         <label>
-          List name
+          {t('List name')}
           <input value={listName} onChange={(event) => setListName(event.target.value)} required />
         </label>
         <div className="gift-form__row">
           <label>
-            Currency
+            {t('Currency')}
             <select value={currency} onChange={(event) => setCurrency(event.target.value)}>
               {CURRENCY_OPTIONS.map((option) => (
                 <option key={option.value} value={option.value}>
-                  {option.label}
+                  {t(option.label)}
                 </option>
               ))}
             </select>
           </label>
           <label>
-            Decimals
+            {t('Decimals')}
             <select value={decimalSeparator} onChange={(event) => setDecimalSeparator(event.target.value)}>
               {DECIMAL_SEPARATOR_OPTIONS.map((option) => (
                 <option key={option.value} value={option.value}>
-                  {option.label}
+                  {t(option.label)}
                 </option>
               ))}
             </select>
@@ -309,22 +312,22 @@ function SettingsPage({ currentUser, onUpdate }) {
         </div>
         {generalError && <p className="form-error">{generalError}</p>}
         <div className="gift-form__actions">
-          <button type="submit">Save</button>
+          <button type="submit">{t('Save')}</button>
           {generalSaved && (
             <p className="form-success">
               <span className="form-success__icon">
                 <CheckIcon />
               </span>
-              Saved
+              {t('Saved')}
             </p>
           )}
         </div>
       </form>
 
       <form className="gift-form" onSubmit={handleAppearanceSubmit}>
-        <h3 className="gift-form__badge">Appearance</h3>
+        <h3 className="gift-form__badge">{t('Appearance')}</h3>
         <label>
-          Theme color
+          {t('Theme color')}
           <span className="theme-swatches">
             {THEME_PRESETS.map((preset) => (
               <button
@@ -332,8 +335,8 @@ function SettingsPage({ currentUser, onUpdate }) {
                 type="button"
                 className={preset.value === themeColor ? 'theme-swatch theme-swatch--selected' : 'theme-swatch'}
                 style={{ backgroundColor: preset.swatchColor }}
-                title={preset.name}
-                aria-label={preset.name}
+                title={t(preset.name)}
+                aria-label={t(preset.name)}
                 onClick={() => setThemeColor(preset.value)}
               />
             ))}
@@ -345,7 +348,7 @@ function SettingsPage({ currentUser, onUpdate }) {
             checked={showImagePlaceholder}
             onChange={(event) => setShowImagePlaceholder(event.target.checked)}
           />
-          Show a placeholder image for items without a photo
+          {t('Show a placeholder image for items without a photo')}
         </label>
         <label className="checkbox-row">
           <input
@@ -353,27 +356,27 @@ function SettingsPage({ currentUser, onUpdate }) {
             checked={showBackgroundPattern}
             onChange={(event) => setShowBackgroundPattern(event.target.checked)}
           />
-          Show a subtle background pattern on gift cards
+          {t('Show a subtle background pattern on gift cards')}
         </label>
         {appearanceError && <p className="form-error">{appearanceError}</p>}
         <div className="gift-form__actions">
-          <button type="submit">Save</button>
+          <button type="submit">{t('Save')}</button>
           {appearanceSaved && (
             <p className="form-success">
               <span className="form-success__icon">
                 <CheckIcon />
               </span>
-              Saved
+              {t('Saved')}
             </p>
           )}
         </div>
       </form>
 
       <form className="gift-form" onSubmit={handleGuestSettingsSubmit}>
-        <h3 className="gift-form__badge">Guest sorting &amp; filtering</h3>
+        <h3 className="gift-form__badge">{t('Guest sorting & filtering')}</h3>
         <p className="info-block">
           <InfoIcon />
-          Lets guests browsing your list narrow it down themselves. This is handy for longer lists.
+          {t('Lets guests browsing your list narrow it down themselves. This is handy for longer lists.')}
         </p>
         <label className="checkbox-row">
           <input
@@ -381,7 +384,7 @@ function SettingsPage({ currentUser, onUpdate }) {
             checked={guestSortByPrice}
             onChange={(event) => setGuestSortByPrice(event.target.checked)}
           />
-          Let guests also sort by price
+          {t('Let guests also sort by price')}
         </label>
         <label className="checkbox-row">
           <input
@@ -389,7 +392,7 @@ function SettingsPage({ currentUser, onUpdate }) {
             checked={guestFilterByLabel}
             onChange={(event) => setGuestFilterByLabel(event.target.checked)}
           />
-          Let guests filter by label
+          {t('Let guests filter by label')}
         </label>
         <label className="checkbox-row">
           <input
@@ -397,17 +400,17 @@ function SettingsPage({ currentUser, onUpdate }) {
             checked={guestFilterByBrand}
             onChange={(event) => setGuestFilterByBrand(event.target.checked)}
           />
-          Let guests filter by brand
+          {t('Let guests filter by brand')}
         </label>
         {guestSettingsError && <p className="form-error">{guestSettingsError}</p>}
         <div className="gift-form__actions">
-          <button type="submit">Save</button>
+          <button type="submit">{t('Save')}</button>
           {guestSettingsSaved && (
             <p className="form-success">
               <span className="form-success__icon">
                 <CheckIcon />
               </span>
-              Saved
+              {t('Saved')}
             </p>
           )}
         </div>
@@ -415,12 +418,11 @@ function SettingsPage({ currentUser, onUpdate }) {
 
       {claimManagementSiteEnabled && (
         <form className="gift-form" onSubmit={handleClaimManagementSubmit}>
-          <h3 className="gift-form__badge">Claim management</h3>
+          <h3 className="gift-form__badge">{t('Claim management')}</h3>
           <p className="info-block">
             <InfoIcon />
             <span>
-              <strong>Caution!</strong> Claims normally stay hidden and anonymous to preserve the surprise. This lets
-              you deliberately reveal or reset them.
+              <strong>{t('Caution!')}</strong> {t('Claims normally stay hidden and anonymous to preserve the surprise. This lets you deliberately reveal or reset them.')}
             </span>
           </p>
           <label className="checkbox-row">
@@ -429,7 +431,7 @@ function SettingsPage({ currentUser, onUpdate }) {
               checked={claimManagementEnabled}
               onChange={(event) => setClaimManagementEnabled(event.target.checked)}
             />
-            Let me reveal and manage claims on this wishlist
+            {t('Let me reveal and manage claims on this wishlist')}
           </label>
           {claimManagementEnabled && (
             <label className="checkbox-row">
@@ -439,52 +441,52 @@ function SettingsPage({ currentUser, onUpdate }) {
                 onChange={(event) => setLockIconClaimedOnly(event.target.checked)}
               />
               <span>
-                Only show the lock icon on already-claimed items
-                <span className="not-recommended">not recommended</span>
+                {t('Only show the lock icon on already-claimed items')}
+                <span className="not-recommended">{t('not recommended')}</span>
               </span>
             </label>
           )}
           {claimManagementError && <p className="form-error">{claimManagementError}</p>}
           <div className="gift-form__actions">
-            <button type="submit">Save</button>
+            <button type="submit">{t('Save')}</button>
             {claimManagementSaved && (
               <p className="form-success">
                 <span className="form-success__icon">
                   <CheckIcon />
                 </span>
-                Saved
+                {t('Saved')}
               </p>
             )}
           </div>
         </form>
       )}
 
-      <h3>Account settings</h3>
+      <h3>{t('Account settings')}</h3>
 
       <form className="gift-form" onSubmit={handleUsernameSubmit}>
-        <h3 className="gift-form__badge">Change username</h3>
+        <h3 className="gift-form__badge">{t('Change username')}</h3>
         <label>
-          Username
+          {t('Username')}
           <input value={username} onChange={(event) => setUsername(event.target.value)} required />
         </label>
         {usernameError && <p className="form-error">{usernameError}</p>}
         <div className="gift-form__actions">
-          <button type="submit">Save</button>
+          <button type="submit">{t('Save')}</button>
           {usernameSaved && (
             <p className="form-success">
               <span className="form-success__icon">
                 <CheckIcon />
               </span>
-              Saved
+              {t('Saved')}
             </p>
           )}
         </div>
       </form>
 
       <form className="gift-form" onSubmit={handlePasswordSubmit}>
-        <h3 className="gift-form__badge">Change password</h3>
+        <h3 className="gift-form__badge">{t('Change password')}</h3>
         <label>
-          New password
+          {t('New password')}
           <input
             type="password"
             value={newPassword}
@@ -494,7 +496,7 @@ function SettingsPage({ currentUser, onUpdate }) {
           />
         </label>
         <label>
-          Confirm new password
+          {t('Confirm new password')}
           <input
             type="password"
             value={confirmPassword}
@@ -505,41 +507,44 @@ function SettingsPage({ currentUser, onUpdate }) {
         </label>
         {passwordError && <p className="form-error">{passwordError}</p>}
         <div className="gift-form__actions">
-          <button type="submit">Save</button>
+          <button type="submit">{t('Save')}</button>
           {passwordSaved && (
             <p className="form-success">
               <span className="form-success__icon">
                 <CheckIcon />
               </span>
-              Password changed
+              {t('Password changed')}
             </p>
           )}
         </div>
       </form>
 
-      <h3>App theme</h3>
+      <h3>{t('App theme')}</h3>
       <form className="gift-form" onSubmit={handleThemeSubmit}>
         <p className="info-block" style={{ marginTop: 0, marginBottom: 4 }}>
           <InfoIcon />
-          Only changes how the app looks for you. Wishlist visitors aren't affected.
+          {t("Only changes how the app looks for you. Wishlist visitors aren't affected.")}
         </p>
-        <select value={colorScheme} onChange={handleColorSchemeChange} aria-label="App theme">
-          <option value="dark">Dark</option>
-          <option value="light">Light</option>
-          <option value="auto">Match system</option>
+        <select value={colorScheme} onChange={handleColorSchemeChange} aria-label={t('App theme')}>
+          <option value="dark">{t('Dark')}</option>
+          <option value="light">{t('Light')}</option>
+          <option value="auto">{t('Match system')}</option>
         </select>
         <div className="gift-form__actions">
-          <button type="submit">Save</button>
+          <button type="submit">{t('Save')}</button>
           {themeSaved && (
             <p className="form-success">
               <span className="form-success__icon">
                 <CheckIcon />
               </span>
-              Saved
+              {t('Saved')}
             </p>
           )}
         </div>
       </form>
+
+      <h3>{t('Language')}</h3>
+      <LanguageSelect />
     </div>
   )
 }

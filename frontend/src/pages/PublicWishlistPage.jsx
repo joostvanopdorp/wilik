@@ -5,6 +5,8 @@ import PublicGiftCard from '../components/PublicGiftCard'
 import { GiftIcon, SparkleIcon, SpinnerIcon } from '../components/Icons'
 import { sortGifts, sortGiftsByPrice } from '../sortGifts'
 import { themeStyle } from '../themePresets'
+import LanguageSelect from '../components/LanguageSelect'
+import { useI18n } from '../i18n'
 
 const API_BASE = '/api'
 
@@ -16,7 +18,7 @@ function uniqueValues(items, field) {
 
 // compact input-group-style control: a "Label"/"Brand" prefix + a button that opens a
 // checkbox popover, so picking several values doesn't grow into a long row of chips
-function MultiSelectFilter({ label, options, selected, onToggle }) {
+function MultiSelectFilter({ label, options, selected, onToggle, t }) {
   const [open, setOpen] = useState(false)
   const containerRef = useRef(null)
 
@@ -29,7 +31,7 @@ function MultiSelectFilter({ label, options, selected, onToggle }) {
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [open])
 
-  const summary = selected.length === 0 ? 'All' : selected.length === 1 ? selected[0] : `${selected.length} selected`
+  const summary = selected.length === 0 ? t('All') : selected.length === 1 ? selected[0] : t('{count} selected', { count: selected.length })
 
   return (
     <div className="wishlist-toolbar__dropdown" ref={containerRef}>
@@ -116,6 +118,7 @@ function SingleSelectDropdown({ label, options, value, onChange }) {
 }
 
 function PublicWishlistPage({ appName }) {
+  const { t } = useI18n()
   const { token } = useParams()
   const [owner, setOwner] = useState(undefined) // undefined = loading, null = invalid link
   const [items, setItems] = useState([])
@@ -158,7 +161,7 @@ function PublicWishlistPage({ appName }) {
       body: JSON.stringify(body ?? {}),
     }).then((response) =>
       response.json().then((data) => {
-        if (!response.ok) throw new Error(data.error || 'Something went wrong')
+        if (!response.ok) throw new Error(data.error || t('Something went wrong'))
         return data
       })
     )
@@ -169,7 +172,7 @@ function PublicWishlistPage({ appName }) {
   }
 
   function handleClaim(gift) {
-    const name = prompt("Your name, so others know it's taken:")
+    const name = prompt(t("Your name, so others know it's taken:"))
     if (!name || !name.trim()) return
     postAction(gift.id, 'claim', { name: name.trim() })
       .then((updated) => {
@@ -195,7 +198,7 @@ function PublicWishlistPage({ appName }) {
 
     // no token on this device: confirm the name first, but only recognize this
     // browser as the claimant -- an actual release still needs a second, explicit click
-    const name = prompt('Confirm your name to manage this claim:')
+    const name = prompt(t('Confirm your name to manage this claim:'))
     if (!name || !name.trim()) return
     postAction(gift.id, 'verify-claim', { name: name.trim() })
       .then((data) => {
@@ -212,7 +215,7 @@ function PublicWishlistPage({ appName }) {
   // already claimed a copy on another device can find their way back to "Release this
   // gift" instead of accidentally claiming an extra, separate copy
   function handleManageClaim(gift) {
-    const name = prompt('Confirm your name to manage your claim:')
+    const name = prompt(t('Confirm your name to manage your claim:'))
     if (!name || !name.trim()) return
     postAction(gift.id, 'verify-claim', { name: name.trim() })
       .then((data) => {
@@ -238,15 +241,16 @@ function PublicWishlistPage({ appName }) {
           </div>
           <div className="topbar__actions">
             <Link to={isLoggedIn ? '/wishlist/browse' : '/directory'}>
-              <GiftIcon /> All wishlists
+              <GiftIcon /> {t('All wishlists')}
             </Link>
+            <LanguageSelect />
           </div>
         </nav>
         <main>
           <div className="empty-state">
             <GiftIcon width={56} height={56} strokeWidth={1.4} />
-            <h3>Link not found</h3>
-            <p>This wishlist link doesn't exist (anymore)</p>
+            <h3>{t('Link not found')}</h3>
+            <p>{t("This wishlist link doesn't exist (anymore)")}</p>
           </div>
         </main>
       </div>
@@ -280,13 +284,14 @@ function PublicWishlistPage({ appName }) {
         </div>
         <div className="topbar__actions">
           <Link to={isLoggedIn ? '/wishlist/browse' : '/directory'}>
-            <GiftIcon /> All wishlists
+            <GiftIcon /> {t('All wishlists')}
           </Link>
+          <LanguageSelect />
         </div>
       </nav>
       <p className="page__hint" style={{ maxWidth: 700, margin: '0 auto 16px' }}>
-        Claim an item by clicking <span className="page__hint-highlight">Get this gift</span> so others know it's
-        taken. The recipient won't be notified.
+        {t('Claim an item by clicking')} <span className="page__hint-highlight">{t('Get this gift')}</span>{' '}
+        {t("so others know it's taken. The recipient won't be notified.")}
       </p>
       <div className="wishlist-toolbar">
         <h2>{owner.list_name}</h2>
@@ -295,29 +300,31 @@ function PublicWishlistPage({ appName }) {
         <div className="wishlist-toolbar__controls">
           {showSortControl && (
             <SingleSelectDropdown
-              label="Sort"
+              label={t('Sort')}
               value={sortBy}
               onChange={setSortBy}
               options={[
-                { value: 'recommended', label: 'Highest rated' },
-                { value: 'price', label: 'Lowest price' },
+                { value: 'recommended', label: t('Highest rated') },
+                { value: 'price', label: t('Lowest price') },
               ]}
             />
           )}
           {showLabelFilter && (
             <MultiSelectFilter
-              label="Label"
+              label={t('Label')}
               options={labelOptions}
               selected={labelFilters}
               onToggle={(value) => toggleFilter(setLabelFilters, value)}
+              t={t}
             />
           )}
           {showBrandFilter && (
             <MultiSelectFilter
-              label="Brand"
+              label={t('Brand')}
               options={brandOptions}
               selected={brandFilters}
               onToggle={(value) => toggleFilter(setBrandFilters, value)}
+              t={t}
             />
           )}
         </div>
@@ -327,8 +334,8 @@ function PublicWishlistPage({ appName }) {
           {sorted.length === 0 && items.length > 0 && (
             <div className="empty-state">
               <SparkleIcon />
-              <h3>No items match your filters</h3>
-              <p>Try a different label or brand</p>
+              <h3>{t('No items match your filters')}</h3>
+              <p>{t('Try a different label or brand')}</p>
               <button
                 type="button"
                 className="btn-primary"
@@ -337,21 +344,21 @@ function PublicWishlistPage({ appName }) {
                   setBrandFilters([])
                 }}
               >
-                Clear filters
+                {t('Clear filters')}
               </button>
             </div>
           )}
           {itemsLoading && (
             <div className="empty-state">
               <SpinnerIcon width={32} height={32} />
-              <p>Loading…</p>
+              <p>{t('Loading…')}</p>
             </div>
           )}
           {!itemsLoading && items.length === 0 && (
             <div className="empty-state">
               <SparkleIcon />
-              <h3>This wishlist is empty</h3>
-              <p>Nothing has been added yet, check back later</p>
+              <h3>{t('This wishlist is empty')}</h3>
+              <p>{t('Nothing has been added yet, check back later')}</p>
             </div>
           )}
           {sorted.map((item) => (

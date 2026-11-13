@@ -2,10 +2,12 @@ import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { SparkleIcon, UserIcon } from './Icons'
 import { themeStyle } from '../themePresets'
+import { useI18n } from '../i18n'
 
 const API_BASE = '/api'
 
 function GiftDirectoryList() {
+  const { t } = useI18n()
   const [lists, setLists] = useState(undefined) // undefined = loading
 
   useEffect(() => {
@@ -20,8 +22,8 @@ function GiftDirectoryList() {
     return (
       <div className="empty-state">
         <SparkleIcon />
-        <h3>No wishlists available</h3>
-        <p>Either there are none yet, or the owner turned this overview off</p>
+        <h3>{t('No wishlists available')}</h3>
+        <p>{t('Either there are none yet, or the owner turned this overview off')}</p>
       </div>
     )
   }

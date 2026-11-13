@@ -2,8 +2,11 @@ import { useState } from 'react'
 import Logo from './Logo'
 import GiftDirectory from './GiftDirectory'
 import { SpinnerIcon } from './Icons'
+import LanguageSelect from './LanguageSelect'
+import { useI18n } from '../i18n'
 
 function Login({ appName, onLogin }) {
+  const { t } = useI18n()
   const [step, setStep] = useState('username')
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
@@ -22,7 +25,7 @@ function Login({ appName, onLogin }) {
     }).then((response) => {
       if (!response.ok) {
         setBusy(false)
-        setError('User not found')
+        setError(t('User not found'))
         return
       }
       response.json().then((data) => {
@@ -60,7 +63,7 @@ function Login({ appName, onLogin }) {
       if (!response.ok) {
         response.json().then((data) => {
           setBusy(false)
-          setError(data.error || 'Invalid username or password')
+          setError(data.error || t('Invalid username or password'))
         })
         return
       }
@@ -77,6 +80,7 @@ function Login({ appName, onLogin }) {
   return (
     <div className="login-page">
       <GiftDirectory />
+      <LanguageSelect />
       {step === 'needs-setup' ? (
         <form className="gift-form login-form" onSubmit={(event) => event.preventDefault()}>
           <div className="login-form__brand">
@@ -84,10 +88,10 @@ function Login({ appName, onLogin }) {
             <h1>{appName}</h1>
           </div>
           <p className="login-form__hint">
-            <strong>{username}</strong>'s account isn't set up yet. Ask your admin for your setup link.
+            <strong>{username}</strong>{t("'s account isn't set up yet. Ask your admin for your setup link.")}
           </p>
           <button type="button" className="login-form__back" onClick={handleBack}>
-            Go back
+            {t('Go back')}
           </button>
         </form>
       ) : step === 'username' ? (
@@ -97,17 +101,17 @@ function Login({ appName, onLogin }) {
             <h1>{appName}</h1>
           </div>
           <label>
-            Username
+            {t('Username')}
             <input value={username} onChange={(event) => setUsername(event.target.value)} required autoFocus />
           </label>
           {error && <p className="form-error">{error}</p>}
           <button type="submit" className="btn-primary" disabled={busy}>
             {busy ? (
               <>
-                <SpinnerIcon /> Checking…
+                <SpinnerIcon /> {t('Checking…')}
               </>
             ) : (
-              'Next'
+              t('Next')
             )}
           </button>
         </form>
@@ -118,10 +122,10 @@ function Login({ appName, onLogin }) {
             <h1>{appName}</h1>
           </div>
           <p className="login-form__hint">
-            Continuing as <strong>{username}</strong>
+            {t('Continuing as')} <strong>{username}</strong>
           </p>
           <label>
-            Password
+            {t('Password')}
             <input
               type="password"
               value={password}
@@ -134,10 +138,10 @@ function Login({ appName, onLogin }) {
           <button type="submit" className="btn-primary" disabled={busy}>
             {busy ? (
               <>
-                <SpinnerIcon /> Logging in…
+                <SpinnerIcon /> {t('Logging in…')}
               </>
             ) : (
-              'Log in'
+              t('Log in')
             )}
           </button>
           <label className="checkbox-row">
@@ -146,10 +150,10 @@ function Login({ appName, onLogin }) {
               checked={rememberMe}
               onChange={(event) => setRememberMe(event.target.checked)}
             />
-            Stay logged in
+            {t('Stay logged in')}
           </label>
           <button type="button" className="login-form__back" onClick={handleBack} disabled={busy}>
-            Not you? Go back
+            {t('Not you? Go back')}
           </button>
         </form>
       )}

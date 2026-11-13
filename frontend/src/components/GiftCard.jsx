@@ -14,6 +14,7 @@ import {
   InfoIcon,
 } from './Icons'
 import { formatPrice } from '../formatPrice'
+import { useI18n } from '../i18n'
 
 const API_BASE = '/api'
 
@@ -38,6 +39,7 @@ function GiftCard({
   onDragEnter,
   onDragEnd,
 }) {
+  const { t } = useI18n()
   const [isEditing, setIsEditing] = useState(false)
   const [claimManagerOpen, setClaimManagerOpen] = useState(false)
   const [claimants, setClaimants] = useState(null)
@@ -125,7 +127,7 @@ function GiftCard({
         return response.json()
       })
       .then((data) => setClaimants(data.claimed_by))
-      .catch((error) => setClaimError(error.message || 'Could not reveal claimants'))
+      .catch((error) => setClaimError(error.message || t('Could not reveal claimants')))
       .finally(() => setClaimActionPending(false))
   }
 
@@ -138,14 +140,19 @@ function GiftCard({
         return response.json()
       })
       .then((data) => setDeleteClaimants(data.claimed_by))
-      .catch((error) => setDeleteClaimError(error.message || 'Could not reveal claimants'))
+      .catch((error) => setDeleteClaimError(error.message || t('Could not reveal claimants')))
       .finally(() => setDeleteRevealPending(false))
   }
 
   function resetClaims() {
     const count = gift.claimed_count ?? 0
     const proceed = confirm(
-      `Reset ${count === 1 ? 'the claim' : `all ${count} claims`} for "${gift.title}"? Visitors will be able to claim it again.`
+      count === 1
+        ? t('Reset the claim for "{title}"? Visitors will be able to claim it again.', { title: gift.title })
+        : t('Reset all {count} claims for "{title}"? Visitors will be able to claim it again.', {
+            count,
+            title: gift.title,
+          })
     )
     if (!proceed) return
 
@@ -163,7 +170,7 @@ function GiftCard({
         onClaimsReset(updatedGift)
         setClaimManagerOpen(false)
       })
-      .catch((error) => setClaimError(error.message || 'Could not reset claims'))
+      .catch((error) => setClaimError(error.message || t('Could not reset claims')))
       .finally(() => setClaimActionPending(false))
   }
 
@@ -175,7 +182,7 @@ function GiftCard({
     >
       <div
         className="gift-card__action-bar"
-        title="Drag to reorder within this star rating"
+        title={t('Drag to reorder within this star rating')}
         onClick={(event) => event.stopPropagation()}
         onPointerDown={handlePointerDown}
       >
@@ -187,8 +194,8 @@ function GiftCard({
             <button
               type="button"
               className="icon-button"
-              aria-label="Manage claims"
-              title="Manage claims"
+              aria-label={t('Manage claims')}
+              title={t('Manage claims')}
               onClick={openClaimManager}
             >
               <LockIcon />
@@ -198,8 +205,8 @@ function GiftCard({
             <button
               type="button"
               className="icon-button"
-              aria-label={gift.received ? 'Move back to wishlist' : 'Received'}
-              title={gift.received ? 'Move back to wishlist' : 'Received'}
+              aria-label={gift.received ? t('Move back to wishlist') : t('Received')}
+              title={gift.received ? t('Move back to wishlist') : t('Received')}
               onClick={(event) => {
                 event.stopPropagation()
                 if (gift.quantity == null && !gift.received) {
@@ -212,8 +219,8 @@ function GiftCard({
                       const count = data.claimed_count
                       const proceed = confirm(
                         count > 0
-                          ? `This item has unlimited quantity, so marking it received won't remove it from your list. It'll just clear the ${count} existing claim${count === 1 ? '' : 's'} so people can keep gifting it. Continue?`
-                          : `This item has unlimited quantity, so marking it received won't remove it from your list. Continue?`
+                          ? t("This item has unlimited quantity, so marking it received won't remove it from your list. It'll just clear {count} existing claims so people can keep gifting it. Continue?", { count })
+                          : t("This item has unlimited quantity, so marking it received won't remove it from your list. Continue?")
                       )
                       if (proceed) onReceivedChange(gift.id, true)
                     })
@@ -228,8 +235,8 @@ function GiftCard({
           <button
             type="button"
             className="icon-button"
-            aria-label="Edit"
-            title="Edit"
+            aria-label={t('Edit')}
+            title={t('Edit')}
             onClick={(event) => {
               event.stopPropagation()
               setIsEditing(true)
@@ -240,15 +247,15 @@ function GiftCard({
           <button
             type="button"
             className="icon-button"
-            aria-label="Delete"
-            title="Delete"
+            aria-label={t('Delete')}
+            title={t('Delete')}
             onClick={(event) => {
               event.stopPropagation()
               fetch(`${API_BASE}/items/${gift.id}/claim-info`, { credentials: 'include' })
                 .then((response) => response.json())
                 .then((data) => {
                   if (data.claimed_count === 0 || claimDeleteWarningSkipped) {
-                    if (confirm(`Delete "${gift.title}"?`)) onDelete(gift.id)
+                    if (confirm(t('Delete "{title}"?', { title: gift.title }))) onDelete(gift.id)
                     return
                   }
                   setDeleteNoticeCount(data.claimed_count)
@@ -269,21 +276,23 @@ function GiftCard({
         titleId={`claim-manager-title-${gift.id}`}
         className="claim-manager"
       >
-        <h3 id={`claim-manager-title-${gift.id}`}>Manage claims</h3>
+        <h3 id={`claim-manager-title-${gift.id}`}>{t('Manage claims')}</h3>
         <p>
           “{gift.title}”{' '}
           {(gift.claimed_count ?? 0) === 0
-            ? 'has no active claims'
-            : `has ${gift.claimed_count} active ${gift.claimed_count === 1 ? 'claim' : 'claims'}`}
+            ? t('has no active claims')
+            : gift.claimed_count === 1
+              ? t('has {count} active claim', { count: gift.claimed_count })
+              : t('has {count} active claims', { count: gift.claimed_count })}
         </p>
         {(gift.claimed_count ?? 0) > 0 && claimants === null && (
           <p className="claim-manager__hint">
-            Names stay hidden until you choose to reveal{'\u00A0'}them
+            {t('Names stay hidden until you choose to reveal them')}
           </p>
         )}
         {claimants !== null && (
           <div className="claim-manager__names">
-            <strong>Claimed by</strong>
+            <strong>{t('Claimed by')}</strong>
             <ul>
               {claimants.map((name, index) => (
                 <li key={`${name}-${index}`}>{name}</li>
@@ -296,11 +305,11 @@ function GiftCard({
           <div className="claim-manager__actions">
             {claimants === null && (
               <button type="button" className="btn-primary" onClick={revealClaimants} disabled={claimActionPending}>
-                Reveal {gift.claimed_count === 1 ? 'name' : 'names'}
+                {t(gift.claimed_count === 1 ? 'Reveal name' : 'Reveal names')}
               </button>
             )}
             <button type="button" className="btn-danger" onClick={resetClaims} disabled={claimActionPending}>
-              Reset {gift.claimed_count === 1 ? 'claim' : 'all claims'}
+              {t(gift.claimed_count === 1 ? 'Reset claim' : 'Reset all claims')}
             </button>
           </div>
         )}
@@ -311,23 +320,24 @@ function GiftCard({
         titleId={`delete-notice-title-${gift.id}`}
         className="claim-manager"
       >
-        <h3 id={`delete-notice-title-${gift.id}`}>Delete claimed item?</h3>
+        <h3 id={`delete-notice-title-${gift.id}`}>{t('Delete claimed item?')}</h3>
         {deleteClaimants === null && (
           <p>
-            “{gift.title}” has been claimed by{' '}
-            {deleteNoticeCount === 1 ? 'someone' : `${deleteNoticeCount} people`}: reveal who, or delete without
-            knowing
+            {t('"{title}" has been claimed by {claimants}: reveal who, or delete without knowing', {
+              title: gift.title,
+              claimants: deleteNoticeCount === 1 ? t('someone') : t('{count} people', { count: deleteNoticeCount }),
+            })}
           </p>
         )}
         {!gift.received && onReceivedChange && (
           <p className="info-block">
             <InfoIcon />
-            If you already got this gift, use the checkmark instead to archive it to your list of received items.
+            {t('If you already got this gift, use the checkmark instead to archive it to your list of received items.')}
           </p>
         )}
         {deleteClaimants !== null && (
           <div className="claim-manager__names">
-            <strong>Claimed by</strong>
+            <strong>{t('Claimed by')}</strong>
             <ul>
               {deleteClaimants.map((name, index) => (
                 <li key={`${name}-${index}`}>{name}</li>
@@ -339,7 +349,7 @@ function GiftCard({
         <div className="claim-manager__actions">
           {deleteClaimants === null && (
             <button type="button" className="btn-primary" onClick={revealForDelete} disabled={deleteRevealPending}>
-              Reveal {deleteNoticeCount === 1 ? 'name' : 'names'}
+              {t(deleteNoticeCount === 1 ? 'Reveal name' : 'Reveal names')}
             </button>
           )}
           <button
@@ -351,7 +361,7 @@ function GiftCard({
               onDelete(gift.id)
             }}
           >
-            {deleteClaimants === null ? 'Delete without knowing' : 'Delete'}
+            {deleteClaimants === null ? t('Delete without knowing') : t('Delete')}
           </button>
         </div>
       </Modal>

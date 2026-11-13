@@ -1,8 +1,11 @@
 import { Link } from 'react-router-dom'
 import Logo from '../components/Logo'
 import GiftDirectoryList from '../components/GiftDirectoryList'
+import { useI18n } from '../i18n'
+import LanguageSelect from '../components/LanguageSelect'
 
 function GiftDirectoryPage({ appName }) {
+  const { t } = useI18n()
   return (
     <div className="app">
       <nav className="topbar">
@@ -12,10 +15,13 @@ function GiftDirectoryPage({ appName }) {
             <span>{appName}</span>
           </Link>
         </div>
+        <div className="topbar__actions">
+          <LanguageSelect />
+        </div>
       </nav>
       <main>
         <div className="page">
-          <h2>Wishlists</h2>
+          <h2>{t('Wishlists')}</h2>
           <GiftDirectoryList />
         </div>
       </main>

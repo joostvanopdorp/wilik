@@ -15,11 +15,14 @@ import WishlistChooserPage from './pages/WishlistChooserPage'
 import WishlistBrowsePage from './pages/WishlistBrowsePage'
 import { themeStyle } from './themePresets'
 import { cacheDefaultColorScheme } from './colorScheme'
+import LanguageSelect from './components/LanguageSelect'
+import { useI18n } from './i18n'
 import './App.css'
 
 const API_BASE = '/api'
 
 function AuthenticatedApp({ appName, onAppNameChange }) {
+  const { t } = useI18n()
   const [currentUser, setCurrentUser] = useState(undefined) // undefined = still checking, null = logged out
   const [menuOpen, setMenuOpen] = useState(false)
 
@@ -70,26 +73,27 @@ function AuthenticatedApp({ appName, onAppNameChange }) {
         <button
           type="button"
           className="topbar__menu-toggle"
-          aria-label={menuOpen ? 'Close menu' : 'Open menu'}
+          aria-label={menuOpen ? t('Close menu') : t('Open menu')}
           onClick={() => setMenuOpen((open) => !open)}
         >
           {menuOpen ? <CloseIcon /> : <MenuIcon />}
         </button>
         <div className={menuOpen ? 'topbar__actions topbar__actions--open' : 'topbar__actions'}>
           <Link to="/wishlist" onClick={() => setMenuOpen(false)}>
-            <GiftIcon /> Wishlists
+            <GiftIcon /> {t('Wishlists')}
           </Link>
           <Link to="/received" onClick={() => setMenuOpen(false)}>
-            <ArchiveIcon /> Received
+            <ArchiveIcon /> {t('Received')}
           </Link>
           <Link to="/settings" onClick={() => setMenuOpen(false)}>
-            <SettingsIcon /> Settings
+            <SettingsIcon /> {t('Settings')}
           </Link>
           {currentUser.is_admin && (
             <Link to="/admin" onClick={() => setMenuOpen(false)}>
-              <KeyIcon /> Admin
+              <KeyIcon /> {t('Admin')}
             </Link>
           )}
+          <LanguageSelect />
           <button
             type="button"
             onClick={() => {
@@ -97,7 +101,7 @@ function AuthenticatedApp({ appName, onAppNameChange }) {
               handleLogout()
             }}
           >
-            <LogoutIcon /> Log out
+            <LogoutIcon /> {t('Log out')}
           </button>
         </div>
       </nav>
