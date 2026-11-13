@@ -2,10 +2,12 @@ import { Link } from 'react-router-dom'
 import Logo from '../components/Logo'
 import GiftDirectoryList from '../components/GiftDirectoryList'
 import { useI18n } from '../i18n'
-import LanguageSelect from '../components/LanguageSelect'
+import LanguageMenu from '../components/LanguageMenu'
 
 function GiftDirectoryPage({ appName }) {
-  const { t } = useI18n()
+  const { t, publicLanguageButtonEnabled, languageMenuVisible } = useI18n()
+  // the admin can show it to every visitor; anyone who turned on their own navbar button gets it too
+  const showLanguageButton = publicLanguageButtonEnabled || languageMenuVisible
   return (
     <div className="app">
       <nav className="topbar">
@@ -15,9 +17,11 @@ function GiftDirectoryPage({ appName }) {
             <span>{appName}</span>
           </Link>
         </div>
-        <div className="topbar__actions">
-          <LanguageSelect />
-        </div>
+        {showLanguageButton && (
+          <div className="topbar__actions topbar__actions--static">
+            <LanguageMenu />
+          </div>
+        )}
       </nav>
       <main>
         <div className="page">

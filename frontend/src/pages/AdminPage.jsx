@@ -18,7 +18,7 @@ function shortVersion(version) {
 }
 
 function AdminPage({ currentUser, appName, onAppNameChange }) {
-  const { t } = useI18n()
+  const { t, languages, applyInstanceSettings } = useI18n()
   const [users, setUsers] = useState([])
   const [appNameInput, setAppNameInput] = useState(appName)
   const [appNameError, setAppNameError] = useState(null)
@@ -62,6 +62,10 @@ function AdminPage({ currentUser, appName, onAppNameChange }) {
   const [defaultColorScheme, setDefaultColorScheme] = useState('dark')
   const [defaultColorSchemeError, setDefaultColorSchemeError] = useState(null)
   const [defaultColorSchemeSaved, setDefaultColorSchemeSaved] = useState(false)
+  const [defaultLanguageSetting, setDefaultLanguageSetting] = useState('system')
+  const [publicLanguageButtonSetting, setPublicLanguageButtonSetting] = useState(false)
+  const [languageSettingsError, setLanguageSettingsError] = useState(null)
+  const [languageSettingsSaved, setLanguageSettingsSaved] = useState(false)
   const [claimManagementSiteEnabled, setClaimManagementSiteEnabled] = useState(false)
   const [claimDeleteWarningSkipped, setClaimDeleteWarningSkipped] = useState(false)
   const [claimManagementSiteError, setClaimManagementSiteError] = useState(null)
@@ -86,6 +90,8 @@ function AdminPage({ currentUser, appName, onAppNameChange }) {
       .then((data) => {
         setPublicDirectoryEnabled(data.public_directory_enabled)
         setDefaultColorScheme(data.default_color_scheme)
+        setDefaultLanguageSetting(data.default_language)
+        setPublicLanguageButtonSetting(data.public_language_button_enabled)
         setClaimManagementSiteEnabled(data.claim_management_site_enabled)
         setClaimDeleteWarningSkipped(data.claim_delete_warning_skipped)
       })
@@ -103,7 +109,7 @@ function AdminPage({ currentUser, appName, onAppNameChange }) {
       body: JSON.stringify({ app_name: appNameInput }),
     }).then((response) => {
       if (!response.ok) {
-        response.json().then((data) => setAppNameError(data.error))
+        response.json().then((data) => setAppNameError(t(data.error)))
         return
       }
       response.json().then((data) => {
@@ -125,7 +131,7 @@ function AdminPage({ currentUser, appName, onAppNameChange }) {
       body: JSON.stringify({ public_directory_enabled: publicDirectoryEnabled }),
     }).then((response) => {
       if (!response.ok) {
-        response.json().then((data) => setDirectoryError(data.error))
+        response.json().then((data) => setDirectoryError(t(data.error)))
         return
       }
       setDirectorySaved(true)
@@ -147,7 +153,7 @@ function AdminPage({ currentUser, appName, onAppNameChange }) {
       }),
     }).then((response) => {
       if (!response.ok) {
-        response.json().then((data) => setClaimManagementSiteError(data.error))
+        response.json().then((data) => setClaimManagementSiteError(t(data.error)))
         return
       }
       setClaimManagementSiteSaved(true)
@@ -166,11 +172,36 @@ function AdminPage({ currentUser, appName, onAppNameChange }) {
       body: JSON.stringify({ default_color_scheme: defaultColorScheme }),
     }).then((response) => {
       if (!response.ok) {
-        response.json().then((data) => setDefaultColorSchemeError(data.error))
+        response.json().then((data) => setDefaultColorSchemeError(t(data.error)))
         return
       }
       setDefaultColorSchemeSaved(true)
       setTimeout(() => setDefaultColorSchemeSaved(false), 2000)
+    })
+  }
+
+  function handleLanguageSettingsSubmit(event) {
+    event.preventDefault()
+    setLanguageSettingsError(null)
+    setLanguageSettingsSaved(false)
+    fetch(`${API_BASE}/settings`, {
+      method: 'PUT',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        default_language: defaultLanguageSetting,
+        public_language_button_enabled: publicLanguageButtonSetting,
+      }),
+    }).then((response) => {
+      if (!response.ok) {
+        response.json().then((data) => setLanguageSettingsError(t(data.error)))
+        return
+      }
+      response.json().then((data) => {
+        applyInstanceSettings(data)
+        setLanguageSettingsSaved(true)
+        setTimeout(() => setLanguageSettingsSaved(false), 2000)
+      })
     })
   }
 
@@ -193,7 +224,7 @@ function AdminPage({ currentUser, appName, onAppNameChange }) {
     }).then((response) => {
       if (!response.ok) {
         setCreatingUser(false)
-        response.json().then((data) => setUserError(data.error))
+        response.json().then((data) => setUserError(t(data.error)))
         return
       }
       response.json().then((newUser) => {
@@ -207,7 +238,7 @@ function AdminPage({ currentUser, appName, onAppNameChange }) {
         setCreateNotice(
           newUser.setup_token
             ? null
-            : t('{username} can log in immediately with just their username. They’ll be asked to set a password.', {
+            : t("{username} can log in immediately with just their username. They'll be asked to set a password.", {
                 username: newUser.username,
               })
         )
@@ -246,7 +277,7 @@ function AdminPage({ currentUser, appName, onAppNameChange }) {
         setResetNotice(
           updatedUser.setup_token
             ? null
-            : t('{username} can log in immediately with just their username. They’ll be asked to set a new password.', {
+            : t("{username} can log in immediately with just their username. They'll be asked to set a new password.", {
                 username: user.username,
               })
         )
@@ -340,7 +371,7 @@ function AdminPage({ currentUser, appName, onAppNameChange }) {
       if (!response.ok) {
         response.json().then((data) => {
           if (editInitialRef.current?.id === user.id) {
-            setSectionStatus((current) => ({ ...current, [section]: { error: data.error, saved: false } }))
+            setSectionStatus((current) => ({ ...current, [section]: { error: t(data.error), saved: false } }))
           }
         })
         return
@@ -970,6 +1001,46 @@ function AdminPage({ currentUser, appName, onAppNameChange }) {
         <div className="gift-form__actions">
           <button type="submit">{t('Save')}</button>
           {defaultColorSchemeSaved && (
+            <p className="form-success">
+              <span className="form-success__icon">
+                <CheckIcon />
+              </span>
+              {t('Saved')}
+            </p>
+          )}
+        </div>
+      </form>
+
+      <h3>{t('Default language')}</h3>
+      <form className="gift-form" onSubmit={handleLanguageSettingsSubmit}>
+        <p className="info-block" style={{ marginTop: 0, marginBottom: 4 }}>
+          <InfoIcon />
+          {t('Default language for anyone without their own preference set, including wishlist visitors.')}
+        </p>
+        <select
+          value={defaultLanguageSetting}
+          onChange={(event) => setDefaultLanguageSetting(event.target.value)}
+          aria-label={t('Default language')}
+        >
+          <option value="system">{t('Match browser language')}</option>
+          {Object.entries(languages).map(([code, details]) => (
+            <option key={code} value={code}>
+              {details.name}
+            </option>
+          ))}
+        </select>
+        <label className="checkbox-row" style={{ marginTop: 8 }}>
+          <input
+            type="checkbox"
+            checked={publicLanguageButtonSetting}
+            onChange={(event) => setPublicLanguageButtonSetting(event.target.checked)}
+          />
+          {t('Show a language button for visitors (public wishlists, directory and login)')}
+        </label>
+        {languageSettingsError && <p className="form-error">{languageSettingsError}</p>}
+        <div className="gift-form__actions">
+          <button type="submit">{t('Save')}</button>
+          {languageSettingsSaved && (
             <p className="form-success">
               <span className="form-success__icon">
                 <CheckIcon />

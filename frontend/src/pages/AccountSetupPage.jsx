@@ -2,8 +2,8 @@ import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import Logo from '../components/Logo'
 import { SpinnerIcon } from '../components/Icons'
-import LanguageSelect from '../components/LanguageSelect'
 import { useI18n } from '../i18n'
+import { LoginPageLanguageMenu } from '../components/LanguageMenu'
 
 const API_BASE = '/api'
 
@@ -47,7 +47,7 @@ function AccountSetupPage({ appName }) {
     }).then((response) => {
       if (!response.ok) {
         setBusy(false)
-        response.json().then((data) => setError(data.error))
+        response.json().then((data) => setError(t(data.error)))
         return
       }
       navigate('/', { replace: true })
@@ -58,7 +58,7 @@ function AccountSetupPage({ appName }) {
 
   return (
     <div className="login-page">
-      <LanguageSelect />
+      <LoginPageLanguageMenu />
       {status === 'invalid' ? (
         <div className="gift-form login-form">
           <div className="login-form__brand">

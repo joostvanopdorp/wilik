@@ -15,14 +15,14 @@ import WishlistChooserPage from './pages/WishlistChooserPage'
 import WishlistBrowsePage from './pages/WishlistBrowsePage'
 import { themeStyle } from './themePresets'
 import { cacheDefaultColorScheme } from './colorScheme'
-import LanguageSelect from './components/LanguageSelect'
+import LanguageMenu from './components/LanguageMenu'
 import { useI18n } from './i18n'
 import './App.css'
 
 const API_BASE = '/api'
 
 function AuthenticatedApp({ appName, onAppNameChange }) {
-  const { t } = useI18n()
+  const { t, languageMenuVisible } = useI18n()
   const [currentUser, setCurrentUser] = useState(undefined) // undefined = still checking, null = logged out
   const [menuOpen, setMenuOpen] = useState(false)
 
@@ -93,7 +93,7 @@ function AuthenticatedApp({ appName, onAppNameChange }) {
               <KeyIcon /> {t('Admin')}
             </Link>
           )}
-          <LanguageSelect />
+          {languageMenuVisible && <LanguageMenu onOpen={() => setMenuOpen(false)} />}
           <button
             type="button"
             onClick={() => {
@@ -128,6 +128,7 @@ function AuthenticatedApp({ appName, onAppNameChange }) {
 
 function App() {
   const [appName, setAppName] = useState('Wilik')
+  const { applyInstanceSettings } = useI18n()
 
   useEffect(() => {
     fetch(`${API_BASE}/settings`)
@@ -135,8 +136,9 @@ function App() {
       .then((data) => {
         setAppName(data.app_name)
         cacheDefaultColorScheme(data.default_color_scheme)
+        applyInstanceSettings(data)
       })
-  }, [])
+  }, [applyInstanceSettings])
 
   useEffect(() => {
     document.title = appName

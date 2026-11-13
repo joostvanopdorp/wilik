@@ -196,7 +196,14 @@ def login():
     if user.locked_until is not None:
         if user.locked_until > now:
             minutes_left = math.ceil((user.locked_until - now).total_seconds() / 60)
-            return jsonify({"error": f"Too many failed attempts. Try again in {minutes_left} minute(s)."}), 429
+            # minutes_left is sent separately so the frontend can translate this message
+            # (see Login.jsx); keep the English text in sync with the template there
+            return jsonify(
+                {
+                    "error": f"Too many failed attempts. Try again in {minutes_left} minute(s).",
+                    "minutes_left": minutes_left,
+                }
+            ), 429
         # lock has expired -- clear it so a good password below can succeed
         user.locked_until = None
         user.failed_login_attempts = 0

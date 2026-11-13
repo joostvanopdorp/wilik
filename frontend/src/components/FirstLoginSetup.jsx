@@ -2,6 +2,7 @@ import { useState } from 'react'
 import Logo from './Logo'
 import { SpinnerIcon } from './Icons'
 import { useI18n } from '../i18n'
+import { LoginPageLanguageMenu } from './LanguageMenu'
 
 const API_BASE = '/api'
 
@@ -34,7 +35,7 @@ function FirstLoginSetup({ appName, currentUser, onUpdate }) {
     }).then((response) => {
       if (!response.ok) {
         setBusy(false)
-        response.json().then((data) => setError(data.error))
+        response.json().then((data) => setError(t(data.error)))
         return
       }
       response.json().then(onUpdate)
@@ -48,6 +49,7 @@ function FirstLoginSetup({ appName, currentUser, onUpdate }) {
 
   return (
     <div className="login-page">
+      <LoginPageLanguageMenu />
       <form className="gift-form login-form" onSubmit={handleSubmit}>
         <div className="login-form__brand">
           <Logo size={40} />

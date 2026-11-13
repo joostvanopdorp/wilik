@@ -23,7 +23,7 @@ jobs:
         run: docker build -t wilik-backend:test ./backend
 
       - name: Run tests
-        run: docker run --rm --entrypoint python wilik-backend:test -m unittest -v test_claim_management test_scrape
+        run: docker run --rm --entrypoint python wilik-backend:test -m unittest -v test_claim_management test_language_settings test_scrape
 
   frontend:
     runs-on: ubuntu-latest
@@ -36,6 +36,10 @@ jobs:
 
       - name: Lint
         run: docker run --rm wilik-frontend-build:test npm run lint
+
+      # needs the backend sources too (for its error messages), so mount the whole repo
+      - name: Check translations
+        run: docker run --rm -e GITHUB_ACTIONS -v "$PWD:/repo:ro" -w /repo wilik-frontend-build:test node scripts/check-translations.mjs
 
       - name: Build image
         run: docker build -t wilik-frontend:test ./frontend

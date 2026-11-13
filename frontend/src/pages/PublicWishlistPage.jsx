@@ -5,8 +5,8 @@ import PublicGiftCard from '../components/PublicGiftCard'
 import { GiftIcon, SparkleIcon, SpinnerIcon } from '../components/Icons'
 import { sortGifts, sortGiftsByPrice } from '../sortGifts'
 import { themeStyle } from '../themePresets'
-import LanguageSelect from '../components/LanguageSelect'
 import { useI18n } from '../i18n'
+import LanguageMenu from '../components/LanguageMenu'
 
 const API_BASE = '/api'
 
@@ -18,7 +18,8 @@ function uniqueValues(items, field) {
 
 // compact input-group-style control: a "Label"/"Brand" prefix + a button that opens a
 // checkbox popover, so picking several values doesn't grow into a long row of chips
-function MultiSelectFilter({ label, options, selected, onToggle, t }) {
+function MultiSelectFilter({ label, options, selected, onToggle }) {
+  const { t } = useI18n()
   const [open, setOpen] = useState(false)
   const containerRef = useRef(null)
 
@@ -118,7 +119,9 @@ function SingleSelectDropdown({ label, options, value, onChange }) {
 }
 
 function PublicWishlistPage({ appName }) {
-  const { t } = useI18n()
+  const { t, publicLanguageButtonEnabled, languageMenuVisible } = useI18n()
+  // the admin can show it to every visitor; anyone who turned on their own navbar button gets it too
+  const showLanguageButton = publicLanguageButtonEnabled || languageMenuVisible
   const { token } = useParams()
   const [owner, setOwner] = useState(undefined) // undefined = loading, null = invalid link
   const [items, setItems] = useState([])
@@ -161,7 +164,7 @@ function PublicWishlistPage({ appName }) {
       body: JSON.stringify(body ?? {}),
     }).then((response) =>
       response.json().then((data) => {
-        if (!response.ok) throw new Error(data.error || t('Something went wrong'))
+        if (!response.ok) throw new Error(t(data.error || 'Something went wrong'))
         return data
       })
     )
@@ -239,11 +242,11 @@ function PublicWishlistPage({ appName }) {
               <span>{appName}</span>
             </Link>
           </div>
-          <div className="topbar__actions">
+          <div className="topbar__actions topbar__actions--static">
             <Link to={isLoggedIn ? '/wishlist/browse' : '/directory'}>
               <GiftIcon /> {t('All wishlists')}
             </Link>
-            <LanguageSelect />
+            {showLanguageButton && <LanguageMenu />}
           </div>
         </nav>
         <main>
@@ -282,16 +285,17 @@ function PublicWishlistPage({ appName }) {
             <span>{appName}</span>
           </Link>
         </div>
-        <div className="topbar__actions">
+        <div className="topbar__actions topbar__actions--static">
           <Link to={isLoggedIn ? '/wishlist/browse' : '/directory'}>
             <GiftIcon /> {t('All wishlists')}
           </Link>
-          <LanguageSelect />
+          {showLanguageButton && <LanguageMenu />}
         </div>
       </nav>
       <p className="page__hint" style={{ maxWidth: 700, margin: '0 auto 16px' }}>
-        {t('Claim an item by clicking')} <span className="page__hint-highlight">{t('Get this gift')}</span>{' '}
-        {t("so others know it's taken. The recipient won't be notified.")}
+        {t("Claim an item by clicking {button} so others know it's taken. The recipient won't be notified.", {
+          button: <span className="page__hint-highlight">{t('Get this gift')}</span>,
+        })}
       </p>
       <div className="wishlist-toolbar">
         <h2>{owner.list_name}</h2>
@@ -315,7 +319,6 @@ function PublicWishlistPage({ appName }) {
               options={labelOptions}
               selected={labelFilters}
               onToggle={(value) => toggleFilter(setLabelFilters, value)}
-              t={t}
             />
           )}
           {showBrandFilter && (
@@ -324,7 +327,6 @@ function PublicWishlistPage({ appName }) {
               options={brandOptions}
               selected={brandFilters}
               onToggle={(value) => toggleFilter(setBrandFilters, value)}
-              t={t}
             />
           )}
         </div>

@@ -1,16 +1,26 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { THEME_PRESETS } from '../themePresets'
-import { getColorScheme, setColorScheme } from '../colorScheme'
+import { applyColorScheme, getColorScheme, setColorScheme } from '../colorScheme'
 import { CURRENCY_OPTIONS, DECIMAL_SEPARATOR_OPTIONS } from '../formOptions'
 import { CheckIcon, InfoIcon } from '../components/Icons'
-import LanguageSelect from '../components/LanguageSelect'
 import { useI18n } from '../i18n'
 
 const API_BASE = '/api'
 
 function SettingsPage({ currentUser, onUpdate }) {
-  const { t } = useI18n()
+  const {
+    t,
+    languageOptions,
+    activePreference,
+    languageMenuVisible,
+    setLanguagePreference,
+    setShowLanguageMenu,
+    setPreviewPreference,
+    setPreviewShowLanguageMenu,
+    clearLanguagePreview,
+  } = useI18n()
+  const [languageSaved, setLanguageSaved] = useState(false)
   const [shareCopied, setShareCopied] = useState(false)
   const [shareRegenerating, setShareRegenerating] = useState(false)
   const [showInDirectory, setShowInDirectory] = useState(currentUser.show_in_directory)
@@ -25,16 +35,46 @@ function SettingsPage({ currentUser, onUpdate }) {
       .then((data) => setClaimManagementSiteEnabled(data.claim_management_site_enabled))
   }, [])
 
+  // leaving Settings without saving drops the theme and language previews
+  useEffect(
+    () => () => {
+      applyColorScheme(getColorScheme())
+      clearLanguagePreview()
+    },
+    [clearLanguagePreview],
+  )
+
   function handleColorSchemeChange(event) {
     const value = event.target.value
     setColorSchemeState(value)
-    setColorScheme(value)
+    applyColorScheme(value) // preview only, stored on Save
   }
 
   function handleThemeSubmit(event) {
     event.preventDefault()
+    // only store a real change: saving the untouched form would otherwise turn the admin's
+    // default into a personal choice that later default changes no longer reach
+    if (colorScheme !== getColorScheme()) setColorScheme(colorScheme)
     setThemeSaved(true)
     setTimeout(() => setThemeSaved(false), 2000)
+  }
+
+  // the language form shows what's in effect (saved value or preview) straight from context,
+  // so it stays in sync when the navbar language button changes the language meanwhile
+  function handleLanguageChange(event) {
+    setPreviewPreference(event.target.value)
+  }
+
+  function handleShowLanguageMenuChange(event) {
+    setPreviewShowLanguageMenu(event.target.checked)
+  }
+
+  function handleLanguageSubmit(event) {
+    event.preventDefault()
+    setLanguagePreference(activePreference)
+    setShowLanguageMenu(languageMenuVisible)
+    setLanguageSaved(true)
+    setTimeout(() => setLanguageSaved(false), 2000)
   }
 
   function handleCopyShareUrl() {
@@ -111,7 +151,7 @@ function SettingsPage({ currentUser, onUpdate }) {
       body: JSON.stringify({ username }),
     }).then((response) => {
       if (!response.ok) {
-        response.json().then((data) => setUsernameError(data.error))
+        response.json().then((data) => setUsernameError(t(data.error)))
         return
       }
       response.json().then((updatedUser) => {
@@ -137,7 +177,7 @@ function SettingsPage({ currentUser, onUpdate }) {
       body: JSON.stringify({ new_password: newPassword }),
     }).then((response) => {
       if (!response.ok) {
-        response.json().then((data) => setPasswordError(data.error))
+        response.json().then((data) => setPasswordError(t(data.error)))
         return
       }
       setNewPassword('')
@@ -162,7 +202,7 @@ function SettingsPage({ currentUser, onUpdate }) {
       }),
     }).then((response) => {
       if (!response.ok) {
-        response.json().then((data) => setGeneralError(data.error))
+        response.json().then((data) => setGeneralError(t(data.error)))
         return
       }
       response.json().then((updatedUser) => {
@@ -188,7 +228,7 @@ function SettingsPage({ currentUser, onUpdate }) {
       }),
     }).then((response) => {
       if (!response.ok) {
-        response.json().then((data) => setAppearanceError(data.error))
+        response.json().then((data) => setAppearanceError(t(data.error)))
         return
       }
       response.json().then((updatedUser) => {
@@ -214,7 +254,7 @@ function SettingsPage({ currentUser, onUpdate }) {
       }),
     }).then((response) => {
       if (!response.ok) {
-        response.json().then((data) => setGuestSettingsError(data.error))
+        response.json().then((data) => setGuestSettingsError(t(data.error)))
         return
       }
       response.json().then((updatedUser) => {
@@ -239,7 +279,7 @@ function SettingsPage({ currentUser, onUpdate }) {
       }),
     }).then((response) => {
       if (!response.ok) {
-        response.json().then((data) => setClaimManagementError(data.error))
+        response.json().then((data) => setClaimManagementError(t(data.error)))
         return
       }
       response.json().then((updatedUser) => {
@@ -544,7 +584,38 @@ function SettingsPage({ currentUser, onUpdate }) {
       </form>
 
       <h3>{t('Language')}</h3>
-      <LanguageSelect />
+      <form className="gift-form" onSubmit={handleLanguageSubmit}>
+        <p className="info-block" style={{ marginTop: 0, marginBottom: 4 }}>
+          <InfoIcon />
+          {t("Only changes the language of the app for you. Wishlist visitors aren't affected.")}
+        </p>
+        <select value={activePreference} onChange={handleLanguageChange} aria-label={t('Language')}>
+          {languageOptions.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+        <label className="checkbox-row" style={{ marginTop: 8 }}>
+          <input
+            type="checkbox"
+            checked={languageMenuVisible}
+            onChange={handleShowLanguageMenuChange}
+          />
+          {t('Show a language button in the navigation bar')}
+        </label>
+        <div className="gift-form__actions">
+          <button type="submit">{t('Save')}</button>
+          {languageSaved && (
+            <p className="form-success">
+              <span className="form-success__icon">
+                <CheckIcon />
+              </span>
+              {t('Saved')}
+            </p>
+          )}
+        </div>
+      </form>
     </div>
   )
 }

@@ -7,6 +7,7 @@ from helpers import (
     COLOR_SCHEME_OPTIONS,
     CURRENCY_OPTIONS,
     DECIMAL_SEPARATOR_OPTIONS,
+    LANGUAGE_OPTIONS,
     THEME_COLORS,
     find_user_by_username,
     issue_setup_token,
@@ -40,6 +41,12 @@ def update_settings():
         if data["default_color_scheme"] not in COLOR_SCHEME_OPTIONS:
             return jsonify({"error": "Invalid color scheme"}), 400
         settings.default_color_scheme = data["default_color_scheme"]
+    if "default_language" in data:
+        if data["default_language"] not in LANGUAGE_OPTIONS:
+            return jsonify({"error": "Invalid language"}), 400
+        settings.default_language = data["default_language"]
+    if "public_language_button_enabled" in data:
+        settings.public_language_button_enabled = bool(data["public_language_button_enabled"])
     if "claim_management_site_enabled" in data:
         settings.claim_management_site_enabled = bool(data["claim_management_site_enabled"])
     if "claim_delete_warning_skipped" in data:

@@ -123,7 +123,7 @@ function GiftCard({
     setClaimError(null)
     fetch(`${API_BASE}/items/${gift.id}/claims`, { credentials: 'include' })
       .then((response) => {
-        if (!response.ok) return response.json().then((data) => Promise.reject(new Error(data.error)))
+        if (!response.ok) return response.json().then((data) => Promise.reject(new Error(t(data.error))))
         return response.json()
       })
       .then((data) => setClaimants(data.claimed_by))
@@ -136,7 +136,7 @@ function GiftCard({
     setDeleteClaimError(null)
     fetch(`${API_BASE}/items/${gift.id}/claims`, { credentials: 'include' })
       .then((response) => {
-        if (!response.ok) return response.json().then((data) => Promise.reject(new Error(data.error)))
+        if (!response.ok) return response.json().then((data) => Promise.reject(new Error(t(data.error))))
         return response.json()
       })
       .then((data) => setDeleteClaimants(data.claimed_by))
@@ -163,7 +163,7 @@ function GiftCard({
       credentials: 'include',
     })
       .then((response) => {
-        if (!response.ok) return response.json().then((data) => Promise.reject(new Error(data.error)))
+        if (!response.ok) return response.json().then((data) => Promise.reject(new Error(t(data.error))))
         return response.json()
       })
       .then((updatedGift) => {
@@ -218,8 +218,10 @@ function GiftCard({
                     .then((data) => {
                       const count = data.claimed_count
                       const proceed = confirm(
-                        count > 0
-                          ? t("This item has unlimited quantity, so marking it received won't remove it from your list. It'll just clear {count} existing claims so people can keep gifting it. Continue?", { count })
+                        count === 1
+                          ? t("This item has unlimited quantity, so marking it received won't remove it from your list. It'll just clear the {count} existing claim so people can keep gifting it. Continue?", { count })
+                          : count > 1
+                          ? t("This item has unlimited quantity, so marking it received won't remove it from your list. It'll just clear the {count} existing claims so people can keep gifting it. Continue?", { count })
                           : t("This item has unlimited quantity, so marking it received won't remove it from your list. Continue?")
                       )
                       if (proceed) onReceivedChange(gift.id, true)
@@ -287,7 +289,7 @@ function GiftCard({
         </p>
         {(gift.claimed_count ?? 0) > 0 && claimants === null && (
           <p className="claim-manager__hint">
-            {t('Names stay hidden until you choose to reveal them')}
+            {t('Names stay hidden until you choose to reveal\u00A0them')}
           </p>
         )}
         {claimants !== null && (
@@ -323,7 +325,7 @@ function GiftCard({
         <h3 id={`delete-notice-title-${gift.id}`}>{t('Delete claimed item?')}</h3>
         {deleteClaimants === null && (
           <p>
-            {t('"{title}" has been claimed by {claimants}: reveal who, or delete without knowing', {
+            {t('“{title}” has been claimed by {claimants}: reveal who, or delete without knowing', {
               title: gift.title,
               claimants: deleteNoticeCount === 1 ? t('someone') : t('{count} people', { count: deleteNoticeCount }),
             })}

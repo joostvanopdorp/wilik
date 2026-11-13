@@ -17,6 +17,20 @@ If you are developing a production application, we recommend using TypeScript wi
 
 ## Localization
 
-The frontend defaults to English, detects Dutch browser preferences, and lets users switch languages from the language selector. The choice is stored in `localStorage`. Keep English source phrases as translation keys and add their translations to `src/locales/nl.js`; untranslated keys fall back to English.
+The UI is available in English and Dutch. Which language someone sees is decided in this order:
 
-To add another language, create a locale module in `src/locales/`, import it in `src/I18nProvider.jsx`, and add its code and display name to the `languages` registry there. Add the same language to the `translations` registry. The language selector and document `lang` attribute are driven by that registry.
+1. Their own choice in Settings or in the language button, stored per browser in `localStorage`.
+2. The default language an admin picks in the admin panel.
+3. The browser's preferred languages. Anything that isn't available falls back to English.
+
+Texts are written in English and passed through `t()`, with the English text itself as the key, for example `t('Save')`. Dutch translations live in `src/locales/nl.js`. A text without a translation is shown in English. Error messages from the backend are translated the same way, with the backend's English message as the key.
+
+`node scripts/check-translations.mjs` (run from the repo root, and in CI) checks that every text goes through `t()`, that every key has a Dutch translation, and that `nl.js` has no unused keys.
+
+You don't need to speak Dutch to contribute. Wrap new text in `t()` and leave `nl.js` alone. A missing Dutch translation only shows up as a warning on your pull request, and a maintainer adds it. Until then the app shows your English text.
+
+To add another language:
+
+1. Create a locale module in `src/locales/`, like `nl.js`.
+2. In `src/I18nProvider.jsx`, import it and add the language to both the `languages` and the `translations` registries.
+3. Add its code to `LANGUAGE_OPTIONS` in `backend/helpers.py`, so admins can pick it as the default.

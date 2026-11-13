@@ -2,8 +2,8 @@ import { useState } from 'react'
 import Logo from './Logo'
 import GiftDirectory from './GiftDirectory'
 import { SpinnerIcon } from './Icons'
-import LanguageSelect from './LanguageSelect'
 import { useI18n } from '../i18n'
+import { LoginPageLanguageMenu } from './LanguageMenu'
 
 function Login({ appName, onLogin }) {
   const { t } = useI18n()
@@ -63,7 +63,18 @@ function Login({ appName, onLogin }) {
       if (!response.ok) {
         response.json().then((data) => {
           setBusy(false)
-          setError(data.error || t('Invalid username or password'))
+          if (data.minutes_left != null) {
+            // the backend's lockout message has the minutes baked in, so rebuild it from a
+            // template (same text as the f-string in backend/routes/auth.py)
+            setError(
+              t('Too many failed attempts. Try again in {minutes_left} minute(s).', {
+                minutes_left: data.minutes_left,
+                unit: t(data.minutes_left === 1 ? 'minute' : 'minutes'),
+              }),
+            )
+          } else {
+            setError(t(data.error || 'Invalid username or password'))
+          }
         })
         return
       }
@@ -79,8 +90,8 @@ function Login({ appName, onLogin }) {
 
   return (
     <div className="login-page">
+      <LoginPageLanguageMenu />
       <GiftDirectory />
-      <LanguageSelect />
       {step === 'needs-setup' ? (
         <form className="gift-form login-form" onSubmit={(event) => event.preventDefault()}>
           <div className="login-form__brand">
@@ -88,7 +99,9 @@ function Login({ appName, onLogin }) {
             <h1>{appName}</h1>
           </div>
           <p className="login-form__hint">
-            <strong>{username}</strong>{t("'s account isn't set up yet. Ask your admin for your setup link.")}
+            {t("{username}'s account isn't set up yet. Ask your admin for your setup link.", {
+              username: <strong>{username}</strong>,
+            })}
           </p>
           <button type="button" className="login-form__back" onClick={handleBack}>
             {t('Go back')}
@@ -122,7 +135,7 @@ function Login({ appName, onLogin }) {
             <h1>{appName}</h1>
           </div>
           <p className="login-form__hint">
-            {t('Continuing as')} <strong>{username}</strong>
+            {t('Continuing as {username}', { username: <strong>{username}</strong> })}
           </p>
           <label>
             {t('Password')}

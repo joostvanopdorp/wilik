@@ -43,7 +43,7 @@ function GiftForm({ initialValues, defaultCurrency, onSubmit, onCancel }) {
       .then((response) => response.json().then((data) => ({ ok: response.ok, data })))
       .then(({ ok, data }) => {
         if (!ok) {
-          setScrapeError(data.error || t('Could not fetch details for that URL'))
+          setScrapeError(t(data.error || 'Could not fetch details for that URL'))
           return
         }
         setValues((current) => ({
