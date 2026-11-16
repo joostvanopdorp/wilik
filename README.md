@@ -29,7 +29,9 @@ cp .env.example .env   # set a real SECRET_KEY
 docker compose up -d
 ```
 
-The app is served on port 8090 (change it with `WILIK_PORT` in `.env`), with a first admin account already created (`Admin` / `admin`). You'll be asked to set a real username and password the first time you log in. That's it for a plain, single-machine setup, no reverse proxy, no backups.
+The app is served on port 8090 (change it with `WILIK_PORT` in `.env`). On first start, the backend creates an admin account and prints a one-time setup link for it. Find it with `docker compose logs backend`, open it on your server's address (e.g. `http://localhost:8090/setup/<token>`) and choose your own username and password. The link is valid for 7 days; if it expired, or you ever lock yourself out, get a fresh one with `docker compose exec backend flask setup-link`.
+
+That's it for a plain, single-machine setup, no reverse proxy, no backups.
 
 To update, pull the new images and restart: `docker compose pull && docker compose up -d`. Database migrations run on their own when the backend starts. Wilik doesn't update itself; to have that happen automatically (cron, Watchtower, or your own tooling), see [Keeping Wilik up to date](DEPLOY.md#keeping-wilik-up-to-date).
 
@@ -59,7 +61,7 @@ Set up the database, once, run from `backend/`:
 - Windows: `.venv\Scripts\python.exe -m flask db upgrade` then `.venv\Scripts\python.exe -m flask bootstrap-db`
 - macOS/Linux: `.venv/bin/python -m flask db upgrade` then `.venv/bin/python -m flask bootstrap-db`
 
-This creates the schema and a first admin account (`Admin` / `admin`). You'll be asked to set a real username and password the first time you log in.
+This creates the schema and a first admin account, and prints a one-time setup link for it. Open it on the frontend's address (`http://localhost:5173/setup/<token>`) to choose your username and password. Need a new link later? Run `flask setup-link` from `backend/` the same way.
 
 Then, from the repo root:
 ```
