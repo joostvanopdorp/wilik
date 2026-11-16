@@ -23,7 +23,7 @@ jobs:
         run: docker build -t wilik-backend:test ./backend
 
       - name: Run tests
-        run: docker run --rm --entrypoint python wilik-backend:test -m unittest -v test_claim_management test_language_settings test_scrape
+        run: docker run --rm --entrypoint python wilik-backend:test -m unittest -v test_claim_management test_cli test_language_settings test_scrape
 
   frontend:
     runs-on: ubuntu-latest

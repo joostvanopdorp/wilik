@@ -7,7 +7,8 @@ from flask_login import LoginManager
 from flask_migrate import Migrate
 from sqlalchemy import event
 
-from helpers import SETUP_TOKEN_VALID_DAYS, issue_setup_token
+from cli import print_setup_link, setup_link_command
+from helpers import issue_setup_token
 from models import AppSettings, User, db
 from routes import admin_bp, auth_bp, items_bp, public_bp, scrape_bp
 
@@ -74,6 +75,8 @@ app.register_blueprint(items_bp)
 app.register_blueprint(scrape_bp)
 app.register_blueprint(public_bp)
 
+app.cli.add_command(setup_link_command)
+
 
 @app.cli.command("bootstrap-db")
 def bootstrap_db():
@@ -85,11 +88,8 @@ def bootstrap_db():
             token = issue_setup_token(admin)
             db.session.add(admin)
             db.session.commit()
-            print("=" * 50)
-            print("Created first admin account: username='Admin'")
-            print(f"Finish setting it up at: /setup/{token}")
-            print(f"This link expires in {SETUP_TOKEN_VALID_DAYS} days.")
-            print("=" * 50)
+            print("Created first admin account 'Admin'. Finish setting it up with the link below.")
+            print_setup_link(admin, token)
 
         if AppSettings.query.count() == 0:
             db.session.add(AppSettings(id=1, app_name="Wilik"))
